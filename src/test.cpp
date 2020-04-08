@@ -5,6 +5,8 @@
 #include <vector>
 #include "Python.h"
 
+#include "test.hpp"
+
 #define M 10000
 #define K 10000
 #define N 10000
@@ -13,35 +15,35 @@ using namespace std;
 class PyAllowThreads
 {
 public:
-    PyAllowThreads() : _state(PyEval_SaveThread()) {}
-    ~PyAllowThreads()
-    {
-        PyEval_RestoreThread(_state);
-    }
+  PyAllowThreads() : _state(PyEval_SaveThread()) {}
+  ~PyAllowThreads()
+  {
+      PyEval_RestoreThread(_state);
+  }
 private:
-    PyThreadState* _state;
+  PyThreadState* _state;
 };
 
 class PyEnsureGIL
 {
 public:
-    PyEnsureGIL() : _state(PyGILState_Ensure()) {}
-    ~PyEnsureGIL()
-    {
-        PyGILState_Release(_state);
-    }
+  PyEnsureGIL() : _state(PyGILState_Ensure()) {}
+  ~PyEnsureGIL()
+  {
+      PyGILState_Release(_state);
+  }
 private:
-    PyGILState_STATE _state;
+  PyGILState_STATE _state;
 };
 
 #define PUBLISH_OBJECT(name, type) Py_INCREF(&type);\
-    PyModule_AddObject(m, name, (PyObject *)&type);
+  PyModule_AddObject(m, name, (PyObject *)&type);
 
 int fac(int n){
-	if (n<2)
-		return 1;
-	else
-		return (n)*fac(n-1);
+  if (n<2)
+    return 1;
+  else
+    return (n)*fac(n-1);
 }
 
 char *reverse(char *s){
@@ -56,8 +58,8 @@ char *reverse(char *s){
 }
 
 static PyObject * Extest_fac(PyObject *self,PyObject *args){
-    int num;
-    if(!PyArg_ParseTuple(args,"i",&num)) return NULL;
+  int num;
+  if(!PyArg_ParseTuple(args,"i",&num)) return NULL;
 	return (PyObject*)Py_BuildValue("i",fac(num));
 }
 static PyObject * Extest_doppel(PyObject *self,PyObject *args){
@@ -73,23 +75,23 @@ static PyObject * Extest_doppel(PyObject *self,PyObject *args){
 }
 
 static PyObject * Extest_keyword(PyObject *self, PyObject *args, PyObject *keywds) {
-    int voltage;
-    char *state = "a stiff";
-    char *action = "voom";
-    char *type = "Norwegian Blue";
+  int voltage;
+  char *state = "a stiff";
+  char *action = "voom";
+  char *type = "Norwegian Blue";
 
-    static char *kwlist[] = {"voltage", "state", "action", "type", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-        args, keywds, "i|sss:keyword", kwlist, 
-        &voltage, &state, &action, &type)) {
-        return NULL;
-    }
-    printf("-- This parrot wouldn't %s if you put %i Volts through it.\n", 
-        action, voltage);
-    printf("-- Lovely plumage, the %s -- It's %s!\n", type, state);
+  static char *kwlist[] = {"voltage", "state", "action", "type", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+      args, keywds, "i|sss:keyword", kwlist, 
+      &voltage, &state, &action, &type)) {
+      return NULL;
+  }
+  printf("-- This parrot wouldn't %s if you put %i Volts through it.\n", 
+      action, voltage);
+  printf("-- Lovely plumage, the %s -- It's %s!\n", type, state);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 vector< vector<int> > matrix_multiply(vector< vector<int> > arrA, vector< vector<int> > arrB) {
@@ -157,7 +159,7 @@ static PyObject * long_running_test(PyObject *self, PyObject *args, PyObject *kw
 		printf("%s.\n", str);
 	}
 	Py_INCREF(Py_None);
-    return Py_None;
+  return Py_None;
 }
 
 static PyMethodDef ExtestMethods[] = {
@@ -178,11 +180,16 @@ static struct PyModuleDef extestmodule = {
 
 PyMODINIT_FUNC
 PyInit_Extest(void){
+	c2py_Model_specials(); 
+	if (!to_ok(&c2py_Model_Type)) {
+    return NULL;
+	}
+
 	PyObject *m;
 	m = PyModule_Create(&extestmodule);
 	if(m == NULL) {
-		return NULL;
-    }
+    return NULL;
+  }
 
 	PyObject* d = PyModule_GetDict(m);
 	PyDict_SetItemString(d, "__version__", PyUnicode_FromString("0.1.0"));
@@ -191,5 +198,6 @@ PyInit_Extest(void){
 		PyErr_NewException((char*)"Extest.error", NULL, NULL);
 	PyDict_SetItemString(d, "error", c2py_error);
 
+  PUBLISH_OBJECT("c2py_Model", c2py_Model_Type)
 	return m;
 }

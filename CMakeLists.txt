@@ -23,7 +23,7 @@ execute_process(
 include_directories(${PYTHON_INCLUDE_PATH})
 include_directories(gen)
 include_directories(src)
-set(SRC src/test.cpp)
+set(SRC src/test.cpp src/config.cpp)
 # set(SRC src/c2py.cpp)
 add_library(Extest SHARED ${SRC})
 target_link_libraries(Extest PUBLIC ${PYTHON_LIBRARIES})
