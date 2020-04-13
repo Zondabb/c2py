@@ -3,9 +3,8 @@
 #include <string>
 #include <string>
 #include <vector>
+#include <memory>
 #include "Python.h"
-
-#include "test.hpp"
 
 #define M 10000
 #define K 10000
@@ -38,6 +37,8 @@ private:
 
 #define PUBLISH_OBJECT(name, type) Py_INCREF(&type);\
   PyModule_AddObject(m, name, (PyObject *)&type);
+
+#include "test.hpp"
 
 int fac(int n){
   if (n<2)

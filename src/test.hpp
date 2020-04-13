@@ -1,5 +1,40 @@
 #include "config.hpp"
 
+#define CV_EXPORTS_W
+#define CV_WRAP
+#define InputArray
+#define OutputArray
+#define CV_OUT
+
+#define C2PY_VERSION "0.1.0"
+
+#include "model.hpp"
+
+#define ERRWRAP2(expr) \
+try \
+{ \
+    PyAllowThreads allowThreads; \
+    expr; \
+} \
+catch (std::exception& e) \
+{ \
+    return 0; \
+}
+
+struct ArgInfo
+{
+  const char * name;
+  bool outputarg;
+  // more fields may be added if necessary
+
+  ArgInfo(const char * name_, bool outputarg_)
+    : name(name_)
+    , outputarg(outputarg_) {}
+
+  // to match with older pyopencv_to function signature
+  operator const char *() const { return name; }
+};
+
 static PyObject* failmsgp(const char *fmt, ...)
 {
   char str[1000];
@@ -15,7 +50,7 @@ static PyObject* failmsgp(const char *fmt, ...)
 
 struct c2py_Model_t {
   PyObject_HEAD
-  // Ptr<c2py::dnn_inference::Model> v;
+  std::shared_ptr<c2py::dnn_inference::Model> v;
 };
 
 static PyTypeObject c2py_Model_Type = {
@@ -25,7 +60,8 @@ static PyTypeObject c2py_Model_Type = {
 };
 
 static void c2py_Model_dealloc(PyObject* self) {
-  // ((pyopencv_c2py_dnn_inference_Model_t*)self)->v.release();
+  INFO_LOG("call c2py_Model_dealloc");
+  ((c2py_Model_t*)self)->v.reset();
   PyObject_Del(self);
 }
 
@@ -41,31 +77,73 @@ static PyGetSetDef c2py_Model_getseters[] = {
 
 static int c2py_Model_Model(c2py_Model_t* self, PyObject* args, PyObject* kw)
 {
-  INFO_LOG("my c2py_Model_Model...");
-  return 0;
+  INFO_LOG("123 my c2py_Model_Model...");
+  // return 0;
+  if(PyObject_Size(args) == 0 && (kw == NULL || PyObject_Size(kw) == 0))
+  {
+    new (&(self->v)) std::shared_ptr<c2py::dnn_inference::Model>(); // init Ptr with placement new
+    if(self) {
+      INFO_LOG("model construct to self...");
+      ERRWRAP2(self->v.reset(new c2py::dnn_inference::Model()));
+      if (self->v.get()) {
+        INFO_LOG("run 1");
+      } else {
+        INFO_LOG("run 2");
+      }
+    }
+    INFO_LOG("model construct success");
+    return 0;
+  }
+  INFO_LOG("model construct failed");
+
+  return -1;
+}
+
+// template<>
+bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
+{
+  (void)name;
+  if(!obj || obj == Py_None)
+    return true;
+  const char* str = PyUnicode_AsUTF8(obj);
+  if(!str)
+    return false;
+  value = str;
+  return true;
+}
+
+PyObject* pyopencv_from(const bool& value)
+{
+    return PyBool_FromLong(value);
 }
 
 static PyObject* c2py_Model_open(PyObject* self, PyObject* args, PyObject* kw)
 {
-  INFO_LOG("my open...");
+  INFO_LOG("run c2py model open");
   // using namespace c2py::dnn_inference;
 
-  // c2py::dnn_inference::Model* _self_ = NULL;
-  if(!PyObject_TypeCheck(self, &c2py_Model_Type))
-    Py_RETURN_NONE;
+  c2py::dnn_inference::Model* _self_ = NULL;
+  if(PyObject_TypeCheck(self, &c2py_Model_Type)) {
+    _self_ = ((c2py_Model_t*)self)->v.get();
+  }
   
-  return failmsgp("Incorrect type of self (must be 'c2py_dnn_inference_Model' or its derivative)");
-  // PyObject* pyobj_model_file = NULL;
-  // string model_file;
-  // bool retval;
+  if (_self_ == NULL)
+    return failmsgp("Incorrect type of self (must be 'c2py_dnn_inference_Model' or its derivative)");
+  PyObject* pyobj_model_file = NULL;
+  std::string model_file;
+  PyObject* pyobj_tmp_file = NULL;
+  std::string tmp_file;
+  bool retval;
 
-  // const char* keywords[] = { "model_file", NULL };
-  // if( PyArg_ParseTupleAndKeywords(args, kw, "O:c2py_dnn_inference_Model.open", (char**)keywords, &pyobj_model_file) &&
-  //     pyopencv_to(pyobj_model_file, model_file, ArgInfo("model_file", 0)) )
-  // {
-  //     ERRWRAP2(retval = _self_->open(model_file));
-  //     return pyopencv_from(retval);
-  // }
+  const char* keywords[] = { "model_file", "tmp_file", NULL };
+  if( PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.open", (char**)keywords, &pyobj_model_file, &pyobj_tmp_file) &&
+      pyopencv_to(pyobj_model_file, model_file, ArgInfo("model_file", 0)) &&
+      pyopencv_to(pyobj_tmp_file, tmp_file, ArgInfo("tmp_file", 0)) )
+  {
+      ERRWRAP2(retval = _self_->open(model_file, tmp_file));
+      return pyopencv_from(retval);
+  }
+
   Py_RETURN_NONE;
 }
 
