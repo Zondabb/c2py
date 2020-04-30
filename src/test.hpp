@@ -8,6 +8,7 @@
 
 #define C2PY_VERSION "0.1.0"
 
+#include "mat.h"
 #include "model.hpp"
 
 #define ERRWRAP2(expr) \
@@ -99,7 +100,6 @@ static int c2py_Model_Model(c2py_Model_t* self, PyObject* args, PyObject* kw)
   return -1;
 }
 
-// template<>
 bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
 {
   (void)name;
@@ -110,6 +110,10 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
     return false;
   value = str;
   return true;
+}
+
+bool pyopencv_to(PyObject* obj, Mat& m) {
+
 }
 
 PyObject* pyopencv_from(const bool& value)
