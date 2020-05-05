@@ -6,6 +6,9 @@
 #include <memory>
 #include "Python.h"
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/ndarrayobject.h>
+
 #define M 10000
 #define K 10000
 #define N 10000

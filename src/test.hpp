@@ -112,8 +112,17 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
   return true;
 }
 
-bool pyopencv_to(PyObject* obj, Mat& m) {
+bool pyopencv_to(PyObject* o, Mat& m) {
+  if(!o || o == Py_None) {
+    return true;
+  }
 
+  if(PyTuple_Check(o)) {
+    failmsgp("Not a numpy array, neither a scalar");
+    return false;
+  }
+
+  PyArrayObject* oarr = (PyArrayObject*) o;
 }
 
 PyObject* pyopencv_from(const bool& value)
