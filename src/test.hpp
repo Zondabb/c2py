@@ -8,7 +8,7 @@
 
 #define C2PY_VERSION "0.1.0"
 
-#include "mat.h"
+#include "tensor.h"
 #include "model.hpp"
 
 #define ERRWRAP2(expr) \
@@ -112,7 +112,7 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
   return true;
 }
 
-bool pyopencv_to(PyObject* o, Mat& m) {
+bool pyopencv_to(PyObject* o, Tensor& m) {
   if(!o || o == Py_None) {
     return true;
   }
@@ -122,6 +122,23 @@ bool pyopencv_to(PyObject* o, Mat& m) {
     return false;
   }
 
+  if(PyTuple_Check(o)) {
+    int i, sz = (int)PyTuple_Size((PyObject*)o);
+    m = Mat(sz, 1, CV_64F);
+    for( i = 0; i < sz; i++ ) {
+      PyObject* oi = PyTuple_GetItem(o, i);
+      if( PyInt_Check(oi) )
+        m.at<double>(i) = (double)PyInt_AsLong(oi);
+      else if( PyFloat_Check(oi) )
+        m.at<double>(i) = (double)PyFloat_AsDouble(oi);
+      else {
+          failmsg("%s is not a numerical tuple", info.name);
+          m.release();
+          return false;
+      }
+    }
+    return true;
+  }
   PyArrayObject* oarr = (PyArrayObject*) o;
 }
 

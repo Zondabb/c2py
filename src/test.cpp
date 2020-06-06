@@ -203,7 +203,7 @@ PyInit_Extest(void){
 	PyDict_SetItemString(d, "error", c2py_error);
 
   PUBLISH_OBJECT("c2py_Model", c2py_Model_Type)
-	Mat _mat(2, 2, 0);
-	INFO_LOG("mat rows: %d, cols: %d", _mat.size[0], _mat.size[1]);
+	Tensor _mat;
+	// INFO_LOG("mat rows: %d, cols: %d", _mat.size[0], _mat.size[1]);
 	return m;
 }
