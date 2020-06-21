@@ -1,6 +1,6 @@
 project(c2py)
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 find_package(Python COMPONENTS Interpreter Development NumPy)
 
@@ -33,3 +33,5 @@ set_target_properties(Extest PROPERTIES
     PREFIX ""
     OUTPUT_NAME Extest
     SUFFIX ${CVPY_SUFFIX})
+
+add_executable(test_tensor src/test_tensor.cc src/config.cpp)

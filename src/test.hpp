@@ -122,24 +122,24 @@ bool pyopencv_to(PyObject* o, Tensor& m) {
     return false;
   }
 
-  if(PyTuple_Check(o)) {
-    int i, sz = (int)PyTuple_Size((PyObject*)o);
-    m = Mat(sz, 1, CV_64F);
-    for( i = 0; i < sz; i++ ) {
-      PyObject* oi = PyTuple_GetItem(o, i);
-      if( PyInt_Check(oi) )
-        m.at<double>(i) = (double)PyInt_AsLong(oi);
-      else if( PyFloat_Check(oi) )
-        m.at<double>(i) = (double)PyFloat_AsDouble(oi);
-      else {
-          failmsg("%s is not a numerical tuple", info.name);
-          m.release();
-          return false;
-      }
-    }
-    return true;
-  }
-  PyArrayObject* oarr = (PyArrayObject*) o;
+  // if(PyTuple_Check(o)) {
+  //   int i, sz = (int)PyTuple_Size((PyObject*)o);
+  //   m = Mat(sz, 1, CV_64F);
+  //   for( i = 0; i < sz; i++ ) {
+  //     PyObject* oi = PyTuple_GetItem(o, i);
+  //     if( PyInt_Check(oi) )
+  //       m.at<double>(i) = (double)PyInt_AsLong(oi);
+  //     else if( PyFloat_Check(oi) )
+  //       m.at<double>(i) = (double)PyFloat_AsDouble(oi);
+  //     else {
+  //         failmsg("%s is not a numerical tuple", info.name);
+  //         m.release();
+  //         return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+  // PyArrayObject* oarr = (PyArrayObject*) o;
 }
 
 PyObject* pyopencv_from(const bool& value)

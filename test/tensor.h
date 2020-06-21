@@ -3,31 +3,41 @@
 
 #include <vector>
 #include <memory>
+#include <ostream>
 
 #include "c2py.hpp"
+
+template<typename T>
+using Vector = std::vector<T>;
+
+template<typename T>
+using Mat2D = std::vector<Vector<T>>;
+
+template<typename T>
+using Mat3D = std::vector<Mat2D<T>>;
 
 struct TensorType {
 public:
   enum Type : uint8_t {
-    DE_UNKNOWN = 0,
-    DE_BOOL,
-    DE_INT8,
-    DE_UINT8,
-    DE_INT16,
-    DE_UINT16,
-    DE_INT32,
-    DE_UINT32,
-    DE_INT64,
-    DE_UINT64,
-    DE_FLOAT16,
-    DE_FLOAT32,
-    DE_FLOAT64,
+    UNKNOWN = 0,
+    BOOL,
+    INT8,
+    UINT8,
+    INT16,
+    UINT16,
+    INT32,
+    UINT32,
+    INT64,
+    UINT64,
+    FLOAT16,
+    FLOAT32,
+    FLOAT64,
     NUM_OF_TYPES
   };
 
-  TensorType() : _type(DE_UNKNOWN) {}
+  TensorType() : _type(UNKNOWN) {}
 
-  constexpr explicit TensorType(Type d) : _type(d) {}
+  TensorType(Type d) : _type(d) {}
 
   ~TensorType() = default;
 
@@ -41,20 +51,20 @@ public:
   }
 
 private:
-  static constexpr uint8_t SIZE_IN_BYTES[] = {
-    0,  // DE_UNKNOWN
-    1,  // DE_BOOL
-    1,  // DE_INT8
-    1,  // DE_UINT8
-    2,  // DE_INT16
-    2,  // DE_UINT16
-    4,  // DE_INT32
-    4,  // DE_UINT32
-    8,  // DE_INT64
-    8,  // DE_UINT64
-    2,  // DE_FLOAT16
-    4,  // DE_FLOAT32
-    8,  // DE_FLOAT64
+  static inline const uint8_t SIZE_IN_BYTES[] = {
+    0,  // UNKNOWN
+    1,  // BOOL
+    1,  // INT8
+    1,  // UINT8
+    2,  // INT16
+    2,  // UINT16
+    4,  // INT32
+    4,  // UINT32
+    8,  // INT64
+    8,  // UINT64
+    2,  // FLOAT16
+    4,  // FLOAT32
+    8,  // FLOAT64
   };
 
   Type _type;
@@ -68,14 +78,41 @@ public:
 
   Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType type);
 
-  // template<typename T> explicit Tensor(const std::vector<T>& vec);
+  template<typename T> void Init(const Vector<T>& vec);
+
+  template<typename T> void Init(const Mat2D<T>& mat_2d);
+
+  template<typename T> void Init(const Mat3D<T>& mat_3d);
+
+  int getDims() {
+    return dims_;
+  }
+
+  uint8_t* getPtr() {
+    return (uint8_t*)data_.get();
+  }
+
+  size_t getSize() const {
+    size_t s = 1;
+    for (int i = 0; i < shape_.size(); i++) {
+      s *= shape_[i];
+    }
+    return s;
+  }
+
+  void Print(std::ostream &out) const;
+
+  friend std::ostream &operator<<(std::ostream &out, const Tensor &so) {
+    so.Print(out);
+    return out;
+  }
 
 private:
-  int _dims;
-  std::shared_ptr<uint8_t> _data;
-  std::vector<size_t> _shape;
-  std::vector<size_t> _step;
-  TensorType _type;
+  int dims_;
+  std::unique_ptr<int8_t[]> data_;
+  std::vector<size_t> shape_;
+  std::vector<size_t> step_;
+  TensorType type_;
 };
 
 #include "tensor.inl.h"

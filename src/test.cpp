@@ -50,32 +50,10 @@ int fac(int n){
     return (n)*fac(n-1);
 }
 
-char *reverse(char *s){
-	register char t,*p=s,*q=(s+(strlen(s)-1));
-	while(p<q)
-	{
-		t = *p;
-		*p++ = *q;
-		*q--=t;
-	}
-	return s;
-}
-
 static PyObject * Extest_fac(PyObject *self,PyObject *args){
   int num;
   if(!PyArg_ParseTuple(args,"i",&num)) return NULL;
 	return (PyObject*)Py_BuildValue("i",fac(num));
-}
-static PyObject * Extest_doppel(PyObject *self,PyObject *args){
-	char* orig_str;
-	char* dup_str;
-	PyObject* retval;
-	
-	if(!PyArg_ParseTuple(args,"s",&orig_str)) return NULL;
-	retval = (PyObject*)Py_BuildValue("ss",orig_str,dup_str=reverse(strdup(orig_str)));
-	
-	free(dup_str);
-	return retval;
 }
 
 static PyObject * Extest_keyword(PyObject *self, PyObject *args, PyObject *keywds) {
@@ -168,7 +146,6 @@ static PyObject * long_running_test(PyObject *self, PyObject *args, PyObject *kw
 
 static PyMethodDef ExtestMethods[] = {
 	{"fac", Extest_fac, METH_VARARGS},
-	{"doppel", Extest_doppel, METH_VARARGS},
     {"keyword", (PyCFunction)Extest_keyword, METH_VARARGS | METH_KEYWORDS},
 	{"long_running_test", (PyCFunction)long_running_test, METH_VARARGS | METH_KEYWORDS},
 	{NULL, NULL}
@@ -203,7 +180,7 @@ PyInit_Extest(void){
 	PyDict_SetItemString(d, "error", c2py_error);
 
   PUBLISH_OBJECT("c2py_Model", c2py_Model_Type)
-	Tensor _mat;
+	// Tensor _mat;
 	// INFO_LOG("mat rows: %d, cols: %d", _mat.size[0], _mat.size[1]);
 	return m;
 }
