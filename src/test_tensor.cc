@@ -14,6 +14,7 @@ int main() {
     // Mat2D<float> mat_2d(10, Vector<float>(10, 150.88f));
     Mat2D<float> mat_2d = {{1.1f}, {1.4f}, {2.1f}, {150.0f}};
     t2.Init(mat_2d);
+    t2.at<float>(1) = 111.111f;
 
     std::cout << t2 << std::endl;
     return 0;

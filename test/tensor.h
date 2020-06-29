@@ -84,6 +84,8 @@ public:
 
   template<typename T> void Init(const Mat3D<T>& mat_3d);
 
+  template<typename T> T& at(size_t idx=0);
+
   int getDims() {
     return dims_;
   }
@@ -92,10 +94,18 @@ public:
     return (uint8_t*)data_.get();
   }
 
-  size_t getSize() const {
+  size_t getSize(size_t dim=0) const {
     size_t s = 1;
-    for (int i = 0; i < shape_.size(); i++) {
-      s *= shape_[i];
+    for (; dim < shape_.size(); dim++) {
+      s *= shape_[dim];
+    }
+    return s;
+  }
+
+  size_t getAllocSize(size_t dim=0) const {
+    size_t s = 1;
+    for (; dim < step_.size(); dim++) {
+      s *= step_[dim];
     }
     return s;
   }

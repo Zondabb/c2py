@@ -61,7 +61,7 @@ static PyTypeObject c2py_Model_Type = {
 };
 
 static void c2py_Model_dealloc(PyObject* self) {
-  INFO_LOG("call c2py_Model_dealloc");
+  INFO_LOG("model dealloc...");
   ((c2py_Model_t*)self)->v.reset();
   PyObject_Del(self);
 }
@@ -78,24 +78,21 @@ static PyGetSetDef c2py_Model_getseters[] = {
 
 static int c2py_Model_Model(c2py_Model_t* self, PyObject* args, PyObject* kw)
 {
-  INFO_LOG("123 my c2py_Model_Model...");
-  // return 0;
   if(PyObject_Size(args) == 0 && (kw == NULL || PyObject_Size(kw) == 0))
   {
     new (&(self->v)) std::shared_ptr<c2py::dnn_inference::Model>(); // init Ptr with placement new
     if(self) {
-      INFO_LOG("model construct to self...");
       ERRWRAP2(self->v.reset(new c2py::dnn_inference::Model()));
-      if (self->v.get()) {
-        INFO_LOG("run 1");
-      } else {
-        INFO_LOG("run 2");
-      }
+      // if (self->v.get()) {
+      //   TODO
+      // } else {
+      //   TODO
+      // }
     }
-    INFO_LOG("model construct success");
+    INFO_LOG("model construct success...");
     return 0;
   }
-  INFO_LOG("model construct failed");
+  INFO_LOG("model construct failed...");
 
   return -1;
 }
@@ -112,46 +109,57 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
   return true;
 }
 
-bool pyopencv_to(PyObject* o, Tensor& m) {
+bool pyopencv_to(PyObject* o, Tensor& t) {
   if(!o || o == Py_None) {
     return true;
   }
 
   if(PyTuple_Check(o)) {
-    failmsgp("Not a numpy array, neither a scalar");
+    size_t i, sz = (size_t)PyTuple_Size((PyObject*)o);
+    // t = Mat(sz, 1, CV_64F);
+    t = Tensor({sz, 1}, TensorType::FLOAT32);
+    for( i = 0; i < sz; i++ ) {
+      PyObject* oi = PyTuple_GetItem(o, i);
+      if(PyLong_Check(oi)) {
+        t.at<float>(i) = (float)PyLong_AsLong(oi);
+      } else if (PyFloat_Check(oi)) {
+        t.at<float>(i) = (float)PyFloat_AsDouble(oi);
+      } else {
+        INFO_LOG("Not a numerical tuple.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if(!PyArray_Check(o)) {
+    INFO_LOG("Not a numpy array, neither a scalar");
     return false;
   }
 
-  // if(PyTuple_Check(o)) {
-  //   int i, sz = (int)PyTuple_Size((PyObject*)o);
-  //   m = Mat(sz, 1, CV_64F);
-  //   for( i = 0; i < sz; i++ ) {
-  //     PyObject* oi = PyTuple_GetItem(o, i);
-  //     if( PyInt_Check(oi) )
-  //       m.at<double>(i) = (double)PyInt_AsLong(oi);
-  //     else if( PyFloat_Check(oi) )
-  //       m.at<double>(i) = (double)PyFloat_AsDouble(oi);
-  //     else {
-  //         failmsg("%s is not a numerical tuple", info.name);
-  //         m.release();
-  //         return false;
-  //     }
-  //   }
-  //   return true;
-  // }
   // PyArrayObject* oarr = (PyArrayObject*) o;
+  // bool needcopy = false, needcast = false;
+  // int typenum = PyArray_TYPE(oarr), new_typenum = typenum;
+  // int type = typenum == NPY_UBYTE ? CV_8U :
+  //             typenum == NPY_BYTE ? CV_8S :
+  //             typenum == NPY_USHORT ? CV_16U :
+  //             typenum == NPY_SHORT ? CV_16S :
+  //             typenum == NPY_INT ? CV_32S :
+  //             typenum == NPY_INT32 ? CV_32S :
+  //             typenum == NPY_FLOAT ? CV_32F :
+  //             typenum == NPY_DOUBLE ? CV_64F : -1;
 }
 
-PyObject* pyopencv_from(const bool& value)
-{
-    return PyBool_FromLong(value);
+PyObject* pyopencv_from(const bool& value) {
+  return PyBool_FromLong(value);
+}
+
+PyObject* pyopencv_from(const Tensor& t) {
+
 }
 
 static PyObject* c2py_Model_open(PyObject* self, PyObject* args, PyObject* kw)
 {
-  INFO_LOG("run c2py model open");
-  // using namespace c2py::dnn_inference;
-
   c2py::dnn_inference::Model* _self_ = NULL;
   if(PyObject_TypeCheck(self, &c2py_Model_Type)) {
     _self_ = ((c2py_Model_t*)self)->v.get();
@@ -177,11 +185,36 @@ static PyObject* c2py_Model_open(PyObject* self, PyObject* args, PyObject* kw)
   Py_RETURN_NONE;
 }
 
+static PyObject* c2py_Model_compute(PyObject* self, PyObject* args, PyObject* kw) {
+  c2py::dnn_inference::Model* _self_ = NULL;
+  if(PyObject_TypeCheck(self, &c2py_Model_Type)) {
+    _self_ = ((c2py_Model_t*)self)->v.get();
+  }
+  if (_self_ == NULL)
+    return failmsgp("Incorrect type of self (must be 'c2py_dnn_inference_Model' or its derivative)");
+  PyObject* pyobj_mat_a = NULL;
+  Tensor ta;
+  PyObject* pyobj_mat_b = NULL;
+  Tensor tb;
+  bool retval;
+
+  const char* keywords[] = { "mat_a", "mat_b", NULL };
+  if( PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.compute", (char**)keywords, &pyobj_mat_a, &pyobj_mat_b) &&
+      pyopencv_to(pyobj_mat_a, ta) &&
+      pyopencv_to(pyobj_mat_b, tb) )
+  {
+      // ERRWRAP2(retval = _self_->open(model_file, tmp_file));
+      return pyopencv_from(retval);
+  }
+
+  Py_RETURN_NONE;
+}
+
 static PyMethodDef c2py_Model_methods[] =
 {
-    {"open", (PyCFunction)c2py_Model_open, METH_VARARGS | METH_KEYWORDS, "open(model_file) -> retval\n."},
-
-    {NULL,          NULL}
+  {"open", (PyCFunction)c2py_Model_open, METH_VARARGS | METH_KEYWORDS, "open(model_file) -> retval\n."},
+  {"compute", (PyCFunction)c2py_Model_compute, METH_VARARGS | METH_KEYWORDS, "compute(mat_a, mat_b -> retaval)\n."},
+  {NULL,          NULL}
 };
 
 static void c2py_Model_specials(void)

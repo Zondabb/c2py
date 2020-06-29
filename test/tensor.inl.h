@@ -145,3 +145,19 @@ void Tensor::Init(const Mat3D<T>& mat_3d) {
     }
   }
 }
+
+template<typename T> T& Tensor::at(size_t idx) {
+  if (idx < getSize()) {
+    size_t cursor = 0;
+    for (int i = 0; i < shape_.size(); i++) {
+      size_t sz = getSize(i+1);
+      size_t sub_row = idx / sz;
+      idx -= sub_row * sz;
+      cursor += sub_row * getAllocSize(i+1);
+    }
+    return *((T*)data_.get() + cursor + idx);
+  } else {
+    INFO_LOG("The index: %d is out of range.", idx);
+    return ((T*)data_.get())[0];
+  }
+}
