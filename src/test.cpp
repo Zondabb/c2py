@@ -64,7 +64,7 @@ static PyObject * Extest_keyword(PyObject *self, PyObject *args, PyObject *keywd
 
   static char *kwlist[] = {"voltage", "state", "action", "type", NULL};
   if (!PyArg_ParseTupleAndKeywords(
-      args, keywds, "i|sss:keyword", kwlist, 
+      args, keywds, "i|sss:keyword", kwlist,
       &voltage, &state, &action, &type)) {
       return NULL;
   }
@@ -161,6 +161,7 @@ static struct PyModuleDef extestmodule = {
 
 PyMODINIT_FUNC
 PyInit_Extest(void){
+	import_array();
 	c2py_Model_specials(); 
 	if (!to_ok(&c2py_Model_Type)) {
     return NULL;

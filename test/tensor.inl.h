@@ -12,7 +12,7 @@ Tensor::Tensor(std::vector<size_t> shape, TensorType type)
   for (int i = 0; i < shape.size(); i++) {
     size *= shape[i];
   }
-  data_ = std::make_unique<int8_t[]>(size * type.SizeInBytes());
+  data_ = std::shared_ptr<int8_t>(new int8_t[size * type.SizeInBytes()](), std::default_delete<int8_t[]>());
 }
 
 Tensor::Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType type)
@@ -21,7 +21,15 @@ Tensor::Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType t
   for (int i = 0; i < step.size(); i++) {
     size *= step[i];
   }
-  data_ = std::make_unique<int8_t[]>(size * type.SizeInBytes());
+  data_ = std::shared_ptr<int8_t>(new int8_t[size * type.SizeInBytes()](), std::default_delete<int8_t[]>());
+}
+
+void Tensor::Reset(std::shared_ptr<int8_t> data, std::vector<size_t> shape, TensorType type) {
+  dims_ = shape.size();
+  data_ = std::move(data);
+  shape_ = shape;
+  step_ = shape;
+  type_ = type;
 }
 
 void Tensor::Print(std::ostream &out) const {
@@ -84,7 +92,7 @@ void Tensor::Init(const Vector<T>& vec) {
   step_.resize(1);
   step_[0] = vec.size();
 
-  data_ = std::make_unique<int8_t[]>(buff_size);
+  data_ = data_ = std::shared_ptr<int8_t>(new int8_t[buff_size](), std::default_delete<int8_t[]>());
   memcpy(data_.get(), vec.data(), buff_size);
 }
 
@@ -108,7 +116,7 @@ void Tensor::Init(const Mat2D<T>& mat_2d) {
   shape_ = {mat_2d.size(), mat_2d[0].size()};
   step_ = {mat_2d.size(), mat_2d[0].size()};
 
-  data_ = std::make_unique<int8_t[]>(buff_size);
+  data_ = std::shared_ptr<int8_t>(new int8_t[buff_size](), std::default_delete<int8_t[]>());
   int8_t* data_ptr = data_.get();
   for (int i = 0; i < step_[0]; i++) {
     memcpy(data_ptr, mat_2d[i].data(), last_dim_buff_size);
@@ -136,7 +144,7 @@ void Tensor::Init(const Mat3D<T>& mat_3d) {
   shape_ = {mat_3d.size(), mat_3d[0].size(), mat_3d[0][0].size()};
   step_ = {mat_3d.size(), mat_3d[0].size(), mat_3d[0][0].size()};
 
-  data_ = std::make_unique<int8_t[]>(buff_size);
+  data_ = std::shared_ptr<int8_t>(new int8_t[buff_size](), std::default_delete<int8_t[]>());
   int8_t* data_ptr = data_.get();
   for (int i = 0; i < step_[0]; i++) {
     for (int j = 0; j < step_[1]; j++) {

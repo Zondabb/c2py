@@ -70,6 +70,14 @@ private:
   Type _type;
 };
 
+class BasicAllocator {
+ public:
+  template <typename T>
+  void operator ()(T *ptr){
+    delete ptr;
+  }
+};
+
 class Tensor {
 public:
   Tensor();
@@ -77,6 +85,10 @@ public:
   Tensor(std::vector<size_t> shape, TensorType type);
 
   Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType type);
+
+  // Tensor(int8_t *data, std::vector<size_t> shape, TensorType type);
+
+  void Reset(std::shared_ptr<int8_t> data, std::vector<size_t> shape, TensorType type);
 
   template<typename T> void Init(const Vector<T>& vec);
 
@@ -119,7 +131,7 @@ public:
 
 private:
   int dims_;
-  std::unique_ptr<int8_t[]> data_;
+  std::shared_ptr<int8_t> data_;
   std::vector<size_t> shape_;
   std::vector<size_t> step_;
   TensorType type_;

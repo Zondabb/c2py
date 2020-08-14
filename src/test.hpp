@@ -22,6 +22,7 @@ catch (std::exception& e) \
     return 0; \
 }
 
+class PyEnsureGIL;
 struct ArgInfo
 {
   const char * name;
@@ -109,6 +110,27 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
   return true;
 }
 
+class NumpyAllocator {
+ public:
+  NumpyAllocator() = delete;
+
+  NumpyAllocator(PyArrayObject *obj) : obj_(obj) {
+    PyEnsureGIL gil;
+    Py_INCREF(obj_);
+  }
+
+  template <typename T>
+  void operator ()(T *ptr) {
+    if (!ptr) {
+      return;
+    }
+    PyEnsureGIL gil;
+    Py_XDECREF(obj_);
+  }
+ private:
+  PyArrayObject *obj_;
+};
+
 bool pyopencv_to(PyObject* o, Tensor& t) {
   if(!o || o == Py_None) {
     return true;
@@ -133,21 +155,44 @@ bool pyopencv_to(PyObject* o, Tensor& t) {
   }
 
   if(!PyArray_Check(o)) {
-    INFO_LOG("Not a numpy array, neither a scalar");
     return false;
   }
 
-  // PyArrayObject* oarr = (PyArrayObject*) o;
-  // bool needcopy = false, needcast = false;
-  // int typenum = PyArray_TYPE(oarr), new_typenum = typenum;
-  // int type = typenum == NPY_UBYTE ? CV_8U :
-  //             typenum == NPY_BYTE ? CV_8S :
-  //             typenum == NPY_USHORT ? CV_16U :
-  //             typenum == NPY_SHORT ? CV_16S :
-  //             typenum == NPY_INT ? CV_32S :
-  //             typenum == NPY_INT32 ? CV_32S :
-  //             typenum == NPY_FLOAT ? CV_32F :
-  //             typenum == NPY_DOUBLE ? CV_64F : -1;
+  PyArrayObject* oarr = (PyArrayObject*) o;
+  bool needcopy = false, needcast = false;
+  int typenum = PyArray_TYPE(oarr), new_typenum = typenum;
+  TensorType type = typenum == NPY_UBYTE ? TensorType::UINT8 :
+                    typenum == NPY_BYTE ? TensorType::INT8 :
+                    typenum == NPY_USHORT ? TensorType::UINT16 :
+                    typenum == NPY_SHORT ? TensorType::INT16 :
+                    typenum == NPY_INT ? TensorType::INT32 :
+                    typenum == NPY_INT32 ? TensorType::UINT32 :
+                    typenum == NPY_FLOAT ? TensorType::FLOAT32 :
+                    typenum == NPY_DOUBLE ? TensorType::FLOAT64 : TensorType::UNKNOWN;
+  int ndims = PyArray_NDIM(oarr);
+  const npy_intp* _sizes = PyArray_DIMS(oarr);
+  const npy_intp* _strides = PyArray_STRIDES(oarr);
+  std::vector<size_t> shape(ndims);
+  for(int i = 0; i < ndims; i++) {
+    shape[i] = (size_t)_sizes[i];
+  }
+
+  std::shared_ptr<int8_t> data_ptr((int8_t*)PyArray_DATA(oarr), NumpyAllocator(oarr));
+  t.Reset(std::move(data_ptr), shape, type);
+  std::cout << "type: " << typenum << std::endl;
+  std::cout << "show size and strides" << std::endl;
+  for (int i = 0; i < ndims; i++) {
+    std::cout << _sizes[i] << ", ";
+  }
+  std::cout << std::endl;
+
+  for (int i = 0; i < ndims; i++) {
+    std::cout << _strides[i] << ", ";
+  }
+  std::cout << std::endl;
+  std::cout << t << std::endl;
+  std::cout << "run done here!" << std::endl;
+  return true;
 }
 
 PyObject* pyopencv_from(const bool& value) {
@@ -199,11 +244,10 @@ static PyObject* c2py_Model_compute(PyObject* self, PyObject* args, PyObject* kw
   bool retval;
 
   const char* keywords[] = { "mat_a", "mat_b", NULL };
-  if( PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.compute", (char**)keywords, &pyobj_mat_a, &pyobj_mat_b) &&
-      pyopencv_to(pyobj_mat_a, ta) &&
-      pyopencv_to(pyobj_mat_b, tb) )
+  if(PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.compute", (char**)keywords, &pyobj_mat_a, &pyobj_mat_b) &&
+     pyopencv_to(pyobj_mat_a, ta) &&
+     pyopencv_to(pyobj_mat_b, tb) )
   {
-      // ERRWRAP2(retval = _self_->open(model_file, tmp_file));
       return pyopencv_from(retval);
   }
 

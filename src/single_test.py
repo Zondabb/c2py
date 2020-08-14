@@ -3,5 +3,8 @@ from Extest import c2py_Model
 
 a = c2py_Model()
 a.open('ddd', 'aaa')
-# a.compute(np.ones((3,3)), np.zeros((3,3)))
-a.compute((1.0, 2.0, 3.3), (1, 2, 3, 44))
+A = np.ones((9)).astype(np.float32)
+A = A * 0.7
+a.compute(A, np.zeros((90, 7, 88)).astype(np.int32))
+print ('done...')
+# a.compute((1.0, 2.0, 3.3), (1, 2, 3, 44))
