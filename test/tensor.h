@@ -16,7 +16,7 @@ using Mat2D = std::vector<Vector<T>>;
 template<typename T>
 using Mat3D = std::vector<Mat2D<T>>;
 
-struct TensorType {
+struct CV_EXPORTS_W TensorType {
 public:
   enum Type : uint8_t {
     UNKNOWN = 0,
@@ -78,7 +78,7 @@ class BasicAllocator {
   }
 };
 
-class Tensor {
+struct CV_EXPORTS_W Tensor {
 public:
   Tensor();
 

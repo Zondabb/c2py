@@ -18,15 +18,14 @@ list(APPEND export_hdrs_ ${_export_hdrs_})
 string(REPLACE ";" "\n" export_hdrs_ "${export_hdrs_}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/headers.txt" "${export_hdrs_}")
 execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/gen.py "${PROJECT_SOURCE_DIR}/gen" "${CMAKE_CURRENT_BINARY_DIR}/headers.txt")
-
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/gen.py "${PROJECT_SOURCE_DIR}/gen" "${CMAKE_CURRENT_BINARY_DIR}/headers.txt")
 include_directories(${Python_INCLUDE_DIRS})
 include_directories(${Python_NumPy_INCLUDE_DIRS})
 include_directories(gen)
 include_directories(src)
 include_directories(test)
-set(SRC src/test.cpp src/config.cpp test/model.cpp)
-# set(SRC src/c2py.cpp)
+# set(SRC src/test.cpp src/config.cpp test/model.cpp)
+set(SRC src/c2py.cpp src/config.cpp test/model.cpp)
 add_library(Extest SHARED ${SRC})
 target_link_libraries(Extest PUBLIC ${Python_LIBRARIES})
 set_target_properties(Extest PROPERTIES

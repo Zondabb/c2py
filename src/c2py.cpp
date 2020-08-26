@@ -12,7 +12,9 @@
 
 #include <memory>
 #include <string>
+using namespace std;
 #define Ptr std::shared_ptr
+#define makePtr std::make_shared
 #define MODULESTR "c2py"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 // #include <numpy/ndarrayobject.h>
@@ -216,11 +218,11 @@ static PyObject* failmsgp(const char *fmt, ...)
 // NumpyAllocator g_numpyAllocator;
 
 
-// template<typename T> static
-// bool pyopencv_to(PyObject* obj, T& p, const char* name = "<unknown>");
+template<typename T> static
+bool pyopencv_to(PyObject* obj, T& p, const char* name = "<unknown>");
 
-// template<typename T> static
-// PyObject* pyopencv_from(const T& src);
+template<typename T> static
+PyObject* pyopencv_from(const T& src);
 
 // enum { ARG_NONE = 0, ARG_MAT = 1, ARG_SCALAR = 2 };
 
@@ -428,14 +430,26 @@ static PyObject* failmsgp(const char *fmt, ...)
 //     return pyopencv_to(o, mx, ArgInfo(name, 0));
 // }
 
-// template <typename T>
-// bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
-// {
-//     if (!o || o == Py_None)
-//         return true;
-//     p = makePtr<T>();
-//     return pyopencv_to(o, *p, name);
-// }
+template <typename T>
+bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
+{
+    if (!o || o == Py_None)
+        return true;
+    p = makePtr<T>();
+    return pyopencv_to(o, *p, name);
+}
+
+bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
+{
+  (void)name;
+  if(!obj || obj == Py_None)
+    return true;
+  const char* str = PyUnicode_AsUTF8(obj);
+  if(!str)
+    return false;
+  value = str;
+  return true;
+}
 
 // template<>
 // PyObject* pyopencv_from(const Mat& m)
@@ -761,11 +775,11 @@ static PyObject* failmsgp(const char *fmt, ...)
 //     return Py_BuildValue("(dddd)", src[0], src[1], src[2], src[3]);
 // }
 
-// template<>
-// PyObject* pyopencv_from(const bool& value)
-// {
-//     return PyBool_FromLong(value);
-// }
+template<>
+PyObject* pyopencv_from(const bool& value)
+{
+    return PyBool_FromLong(value);
+}
 
 // template<>
 // bool pyopencv_to(PyObject* obj, bool& value, const char* name)
@@ -1518,218 +1532,8 @@ static PyObject* failmsgp(const char *fmt, ...)
 //     return PyArg_ParseTuple(obj, "(ff)(ff)f", &dst.center.x, &dst.center.y, &dst.size.width, &dst.size.height, &dst.angle) > 0;
 // }
 
-// template<>
-// PyObject* pyopencv_from(const RotatedRect& src)
-// {
-//     return Py_BuildValue("((ff)(ff)f)", src.center.x, src.center.y, src.size.width, src.size.height, src.angle);
-// }
-
-// template<>
-// PyObject* pyopencv_from(const Moments& m)
-// {
-//     return Py_BuildValue("{s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}",
-//                          "m00", m.m00, "m10", m.m10, "m01", m.m01,
-//                          "m20", m.m20, "m11", m.m11, "m02", m.m02,
-//                          "m30", m.m30, "m21", m.m21, "m12", m.m12, "m03", m.m03,
-//                          "mu20", m.mu20, "mu11", m.mu11, "mu02", m.mu02,
-//                          "mu30", m.mu30, "mu21", m.mu21, "mu12", m.mu12, "mu03", m.mu03,
-//                          "nu20", m.nu20, "nu11", m.nu11, "nu02", m.nu02,
-//                          "nu30", m.nu30, "nu21", m.nu21, "nu12", m.nu12, "nu03", m.nu03);
-// }
-
 // #include "pyopencv_custom_headers.h"
 
-// static int OnError(int status, const char *func_name, const char *err_msg, const char *file_name, int line, void *userdata)
-// {
-//     PyGILState_STATE gstate;
-//     gstate = PyGILState_Ensure();
-
-//     PyObject *on_error = (PyObject*)userdata;
-//     PyObject *args = Py_BuildValue("isssi", status, func_name, err_msg, file_name, line);
-
-//     PyObject *r = PyObject_Call(on_error, args, NULL);
-//     if (r == NULL) {
-//         PyErr_Print();
-//     } else {
-//         Py_DECREF(r);
-//     }
-
-//     Py_DECREF(args);
-//     PyGILState_Release(gstate);
-
-//     return 0; // The return value isn't used
-// }
-
-// static PyObject *pycvRedirectError(PyObject*, PyObject *args, PyObject *kw)
-// {
-//     const char *keywords[] = { "on_error", NULL };
-//     PyObject *on_error;
-
-//     if (!PyArg_ParseTupleAndKeywords(args, kw, "O", (char**)keywords, &on_error))
-//         return NULL;
-
-//     if ((on_error != Py_None) && !PyCallable_Check(on_error))  {
-//         PyErr_SetString(PyExc_TypeError, "on_error must be callable");
-//         return NULL;
-//     }
-
-//     // Keep track of the previous handler parameter, so we can decref it when no longer used
-//     static PyObject* last_on_error = NULL;
-//     if (last_on_error) {
-//         Py_DECREF(last_on_error);
-//         last_on_error = NULL;
-//     }
-
-//     if (on_error == Py_None) {
-//         ERRWRAP2(redirectError(NULL));
-//     } else {
-//         last_on_error = on_error;
-//         Py_INCREF(last_on_error);
-//         ERRWRAP2(redirectError(OnError, last_on_error));
-//     }
-//     Py_RETURN_NONE;
-// }
-
-// static void OnMouse(int event, int x, int y, int flags, void* param)
-// {
-//     PyGILState_STATE gstate;
-//     gstate = PyGILState_Ensure();
-
-//     PyObject *o = (PyObject*)param;
-//     PyObject *args = Py_BuildValue("iiiiO", event, x, y, flags, PyTuple_GetItem(o, 1));
-
-//     PyObject *r = PyObject_Call(PyTuple_GetItem(o, 0), args, NULL);
-//     if (r == NULL)
-//         PyErr_Print();
-//     else
-//         Py_DECREF(r);
-//     Py_DECREF(args);
-//     PyGILState_Release(gstate);
-// }
-
-// #ifdef HAVE_OPENCV_HIGHGUI
-// static PyObject *pycvSetMouseCallback(PyObject*, PyObject *args, PyObject *kw)
-// {
-//     const char *keywords[] = { "window_name", "on_mouse", "param", NULL };
-//     char* name;
-//     PyObject *on_mouse;
-//     PyObject *param = NULL;
-
-//     if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|O", (char**)keywords, &name, &on_mouse, &param))
-//         return NULL;
-//     if (!PyCallable_Check(on_mouse)) {
-//         PyErr_SetString(PyExc_TypeError, "on_mouse must be callable");
-//         return NULL;
-//     }
-//     if (param == NULL) {
-//         param = Py_None;
-//     }
-//     static PyObject* last_param = NULL;
-//     if (last_param) {
-//         Py_DECREF(last_param);
-//         last_param = NULL;
-//     }
-//     last_param = Py_BuildValue("OO", on_mouse, param);
-//     ERRWRAP2(setMouseCallback(name, OnMouse, last_param));
-//     Py_RETURN_NONE;
-// }
-// #endif
-
-// static void OnChange(int pos, void *param)
-// {
-//     PyGILState_STATE gstate;
-//     gstate = PyGILState_Ensure();
-
-//     PyObject *o = (PyObject*)param;
-//     PyObject *args = Py_BuildValue("(i)", pos);
-//     PyObject *r = PyObject_Call(PyTuple_GetItem(o, 0), args, NULL);
-//     if (r == NULL)
-//         PyErr_Print();
-//     else
-//         Py_DECREF(r);
-//     Py_DECREF(args);
-//     PyGILState_Release(gstate);
-// }
-
-// #ifdef HAVE_OPENCV_HIGHGUI
-// static PyObject *pycvCreateTrackbar(PyObject*, PyObject *args)
-// {
-//     PyObject *on_change;
-//     char* trackbar_name;
-//     char* window_name;
-//     int *value = new int;
-//     int count;
-
-//     if (!PyArg_ParseTuple(args, "ssiiO", &trackbar_name, &window_name, value, &count, &on_change))
-//         return NULL;
-//     if (!PyCallable_Check(on_change)) {
-//         PyErr_SetString(PyExc_TypeError, "on_change must be callable");
-//         return NULL;
-//     }
-//     static PyObject* last_param = NULL;
-//     if (last_param) {
-//         Py_DECREF(last_param);
-//         last_param = NULL;
-//     }
-//     last_param = Py_BuildValue("OO", on_change, Py_None);
-//     ERRWRAP2(createTrackbar(trackbar_name, window_name, value, count, OnChange, last_param));
-//     Py_RETURN_NONE;
-// }
-
-// static void OnButtonChange(int state, void *param)
-// {
-//     PyGILState_STATE gstate;
-//     gstate = PyGILState_Ensure();
-
-//     PyObject *o = (PyObject*)param;
-//     PyObject *args;
-//     if(PyTuple_GetItem(o, 1) != NULL)
-//     {
-//         args = Py_BuildValue("(iO)", state, PyTuple_GetItem(o,1));
-//     }
-//     else
-//     {
-//         args = Py_BuildValue("(i)", state);
-//     }
-
-//     PyObject *r = PyObject_Call(PyTuple_GetItem(o, 0), args, NULL);
-//     if (r == NULL)
-//         PyErr_Print();
-//     else
-//         Py_DECREF(r);
-//     Py_DECREF(args);
-//     PyGILState_Release(gstate);
-// }
-
-// static PyObject *pycvCreateButton(PyObject*, PyObject *args, PyObject *kw)
-// {
-//     const char* keywords[] = {"buttonName", "onChange", "userData", "buttonType", "initialButtonState", NULL};
-//     PyObject *on_change;
-//     PyObject *userdata = NULL;
-//     char* button_name;
-//     int button_type = 0;
-//     int initial_button_state = 0;
-
-//     if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|Oii", (char**)keywords, &button_name, &on_change, &userdata, &button_type, &initial_button_state))
-//         return NULL;
-//     if (!PyCallable_Check(on_change)) {
-//         PyErr_SetString(PyExc_TypeError, "onChange must be callable");
-//         return NULL;
-//     }
-//     if (userdata == NULL) {
-//         userdata = Py_None;
-//     }
-
-//     static PyObject* last_param = NULL;
-//     if (last_param) {
-//         Py_DECREF(last_param);
-//         last_param = NULL;
-//     }
-//     last_param = Py_BuildValue("OO", on_change, userdata);
-//     ERRWRAP2(createButton(button_name, OnButtonChange, last_param, button_type, initial_button_state != 0));
-//     Py_RETURN_NONE;
-// }
-// #endif
 
 // ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -1830,7 +1634,7 @@ static int to_ok(PyTypeObject *to)
 
 
 #if PY_MAJOR_VERSION >= 3
-extern "C" CV_EXPORTS PyObject* PyInit_cv2();
+extern "C" CV_EXPORTS PyObject* PyInit_Extest();
 static struct PyModuleDef cv2_moduledef =
 {
     PyModuleDef_HEAD_INIT,
@@ -1841,7 +1645,7 @@ static struct PyModuleDef cv2_moduledef =
     special_methods
 };
 
-PyObject* PyInit_cv2()
+PyObject* PyInit_Extest()
 #else
 extern "C" CV_EXPORTS void initcv2();
 
@@ -1867,12 +1671,12 @@ void initcv2()
   PyDict_SetItemString(d, "error", c2py_error);
 
 //Registering UMatWrapper python class in cv2 module:
-  if (PyType_Ready(&cv2_UMatWrapperType) < 0)
-#if PY_MAJOR_VERSION >= 3
-    return NULL;
-#else
-    return;
-#endif
+//   if (PyType_Ready(&cv2_UMatWrapperType) < 0)
+// #if PY_MAJOR_VERSION >= 3
+//     return NULL;
+// #else
+//     return;
+// #endif
 
 
 #if PY_MAJOR_VERSION >= 3

@@ -6,6 +6,7 @@ import os, sys, re, string, io
 # the list only for debugging. The real list is specified in CMakeLists.txt
 opencv_hdr_list = [
 "../test/model.hpp",
+"../test/tensor.hpp",
 ]
 
 """

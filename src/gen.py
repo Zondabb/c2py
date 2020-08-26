@@ -106,7 +106,7 @@ static PyTypeObject pyopencv_${name}_Type =
 
 static void pyopencv_${name}_dealloc(PyObject* self)
 {
-    ((pyopencv_${name}_t*)self)->v.release();
+    ((pyopencv_${name}_t*)self)->v.reset();
     PyObject_Del(self);
 }
 
@@ -127,7 +127,7 @@ template<> bool pyopencv_to(PyObject* src, Ptr<${cname}>& dst, const char* name)
         failmsg("Expected ${cname} for argument '%%s'", name);
         return false;
     }
-    dst = ((pyopencv_${name}_t*)src)->v.dynamicCast<${cname}>();
+    dst = dynamic_pointer_cast<${cname}>(((pyopencv_${name}_t*)src)->v);
     return true;
 }
 
@@ -1090,6 +1090,7 @@ class PythonWrapperGenerator(object):
         self.save_json(output_path, "pyopencv_signatures.json", self.py_signatures)
 
 if __name__ == "__main__":
+    print('running gen.py')
     dstdir = "../gen/"
     if len(sys.argv) > 1:
         dstdir = sys.argv[1]
