@@ -144,7 +144,7 @@ class CppHeaderParser(object):
                     arg_type += w
                 continue
             elif w == "<":
-                arg_type += "_"
+                arg_type += "<"
                 angle_stack.append(0)
             elif w == "," or w == '>':
                 if not angle_stack:
@@ -158,6 +158,8 @@ class CppHeaderParser(object):
                         sys.exit(-1)
                     if angle_stack[0] > 1:
                         arg_type += "_end_"
+                    else:
+                        arg_type += ">"
                     angle_stack[-1:] = []
             elif angle_stack:
                 arg_type += w

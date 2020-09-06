@@ -131,6 +131,19 @@ template<> bool pyopencv_to(PyObject* src, Ptr<${cname}>& dst, const char* name)
     return true;
 }
 
+template<> bool pyopencv_to(PyObject* src, ${cname}& dst, const char* name)
+{
+    if( src == NULL || src == Py_None )
+        return true;
+    if(!PyObject_TypeCheck(src, &pyopencv_${name}_Type))
+    {
+        failmsg("Expected ${cname} for argument '%%s'", name);
+        return false;
+    }
+    dst = *(((pyopencv_${name}_t*)src)->v);
+    return true;
+}
+
 """ % head_init_str)
 
 gen_template_map_type_cvt = Template("""

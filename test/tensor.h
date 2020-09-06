@@ -6,7 +6,11 @@
 #include <ostream>
 
 #include "c2py.hpp"
+#include "config.hpp"
+#include <cstring>
+#include <iostream>
 
+namespace c2py {
 template<typename T>
 using Vector = std::vector<T>;
 
@@ -35,7 +39,7 @@ public:
     NUM_OF_TYPES
   };
 
-  TensorType() : _type(UNKNOWN) {}
+  CV_WRAP TensorType() : _type(UNKNOWN) {}
 
   TensorType(Type d) : _type(d) {}
 
@@ -80,9 +84,9 @@ class BasicAllocator {
 
 struct CV_EXPORTS_W Tensor {
 public:
-  Tensor();
+  CV_WRAP Tensor();
 
-  Tensor(std::vector<size_t> shape, TensorType type);
+  CV_WRAP Tensor(std::vector<size_t> shape, TensorType type);
 
   Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType type);
 
@@ -139,4 +143,5 @@ private:
 
 #include "tensor.inl.h"
 
+} // namespace c2py
 #endif  // __TENSOR_H__

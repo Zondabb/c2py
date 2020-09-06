@@ -439,6 +439,7 @@ bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
     return pyopencv_to(o, *p, name);
 }
 
+template<>
 bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
 {
   (void)name;
@@ -449,6 +450,30 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
     return false;
   value = str;
   return true;
+}
+
+template<>
+bool pyopencv_to(PyObject* o, std::vector<size_t>& value, const char* name) {
+  if(!o || o == Py_None) {
+    return true;
+  }
+
+  if(PyTuple_Check(o)) {
+    size_t sz = (size_t)PyTuple_Size((PyObject*)o);
+    value.resize(sz);
+    for (size_t i = 0; i < sz; i++) {
+      PyObject* oi = PyTuple_GetItem(o, i);
+      if(PyLong_Check(oi)) {
+        value[i] = (size_t)PyLong_AsLong(oi);
+      } else {
+        INFO_LOG("Not a numerical tuple.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
 }
 
 // template<>

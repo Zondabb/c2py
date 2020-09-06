@@ -1,8 +1,12 @@
 import numpy as np
 from Extest import c2py_dnn_inference_Model
+from Extest import c2py_Tensor
+from Extest import c2py_TensorType
 
 a = c2py_dnn_inference_Model()
 a.open('ddd', 'aaa')
+
+t = c2py_Tensor((3,3), c2py_TensorType())
 # A = np.ones((9)).astype(np.float32)
 # A = A * 0.7
 # a.compute(A, np.zeros((90, 7, 88)).astype(np.int32))

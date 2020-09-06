@@ -1,6 +1,4 @@
-#include "config.hpp"
-#include <cstring>
-#include <iostream>
+
 
 Tensor::Tensor()
   : dims_(0), data_(nullptr), shape_({0}), step_({0}),
@@ -165,7 +163,7 @@ template<typename T> T& Tensor::at(size_t idx) {
     }
     return *((T*)data_.get() + cursor + idx);
   } else {
-    INFO_LOG("The index: %d is out of range.", idx);
+    // INFO_LOG("The index: %d is out of range.", idx);
     return ((T*)data_.get())[0];
   }
 }
