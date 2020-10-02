@@ -258,7 +258,7 @@ simple_argtype_mapping = {
 }
 
 def normalize_class_name(name):
-    return re.sub(r"^cv\.", "", name).replace(".", "_")
+    return re.sub(r"^c2py\.", "", name).replace(".", "_")
 
 class ClassProp(object):
     def __init__(self, decl):
@@ -292,7 +292,7 @@ class ClassInfo(object):
                 #return sys.exit(-1)
             elif len(bases) == 1:
                 self.base = bases[0].strip(",")
-                if self.base.startswith("cv::"):
+                if self.base.startswith("c2py::"):
                     self.base = self.base[4:]
                 if self.base == "Algorithm":
                     self.isalgorithm = True
@@ -815,12 +815,12 @@ class FuncInfo(object):
             classinfo = all_classes[self.classname]
             #if dump: pprint(vars(classinfo))
             if self.isconstructor:
-                py_name = 'cv.' + classinfo.wname
+                py_name = 'c2py.' + classinfo.wname
             elif self.isclassmethod:
                 py_name = '.'.join([self.namespace, classinfo.sname + '_' + self.variants[0].wname])
             else:
                 cname = classinfo.cname + '::' + cname
-                py_name = 'cv.' + classinfo.wname + '.' + self.variants[0].wname
+                py_name = 'c2py.' + classinfo.wname + '.' + self.variants[0].wname
         else:
             py_name = '.'.join([self.namespace, self.variants[0].wname])
         #if dump: print(cname + " => " + py_name)
@@ -875,7 +875,7 @@ class PythonWrapperGenerator(object):
         namespace = '.'.join(namespace)
         name = '_'.join(classes+[name])
 
-        py_name = 'cv.' + classinfo.wname  # use wrapper name
+        py_name = 'c2py.' + classinfo.wname  # use wrapper name
         py_signatures = self.py_signatures.setdefault(classinfo.cname, [])
         py_signatures.append(dict(name=py_name))
         #print('class: ' + classinfo.cname + " => " + py_name)
@@ -975,7 +975,7 @@ class PythonWrapperGenerator(object):
     def gen_namespaces_reg(self):
         self.code_ns_reg.write('static void init_submodules(PyObject * root) \n{\n')
         for ns_name in sorted(self.namespaces):
-            if ns_name.split('.')[0] == 'cv':
+            if ns_name.split('.')[0] == 'c2py':
                 wname = normalize_class_name(ns_name)
                 self.code_ns_reg.write('  init_submodule(root, MODULESTR"%s", methods_%s, consts_%s);\n' % (ns_name[2:], wname, wname))
         self.code_ns_reg.write('};\n')
@@ -1061,7 +1061,7 @@ class PythonWrapperGenerator(object):
                 else:
                     templ = gen_template_type_decl
                 self.code_types.write(templ.substitute(name=name, wname=classinfo.wname, cname=classinfo.cname, sname=classinfo.sname,
-                                      cname1=("cv::Algorithm" if classinfo.isalgorithm else classinfo.cname)))
+                                      cname1=("c2py::Algorithm" if classinfo.isalgorithm else classinfo.cname)))
 
         # register classes in the same order as they have been declared.
         # this way, base classes will be registered in Python before their derivatives.
@@ -1077,7 +1077,7 @@ class PythonWrapperGenerator(object):
 
         # step 3: generate the code for all the global functions
         for ns_name, ns in sorted(self.namespaces.items()):
-            if ns_name.split('.')[0] != 'cv':
+            if ns_name.split('.')[0] != 'c2py':
                 continue
             for name, func in sorted(ns.funcs.items()):
                 if func.isconstructor:

@@ -806,116 +806,116 @@ PyObject* pyopencv_from(const bool& value)
     return PyBool_FromLong(value);
 }
 
-// template<>
-// bool pyopencv_to(PyObject* obj, bool& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     int _val = PyObject_IsTrue(obj);
-//     if(_val < 0)
-//         return false;
-//     value = _val > 0;
-//     return true;
-// }
+template<>
+bool pyopencv_to(PyObject* obj, bool& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    int _val = PyObject_IsTrue(obj);
+    if(_val < 0)
+        return false;
+    value = _val > 0;
+    return true;
+}
 
-// template<>
-// PyObject* pyopencv_from(const size_t& value)
-// {
-//     return PyLong_FromSize_t(value);
-// }
+template<>
+PyObject* pyopencv_from(const size_t& value)
+{
+    return PyLong_FromSize_t(value);
+}
 
-// template<>
-// bool pyopencv_to(PyObject* obj, size_t& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     value = (int)PyLong_AsUnsignedLong(obj);
-//     return value != (size_t)-1 || !PyErr_Occurred();
-// }
+template<>
+bool pyopencv_to(PyObject* obj, size_t& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    value = (int)PyLong_AsUnsignedLong(obj);
+    return value != (size_t)-1 || !PyErr_Occurred();
+}
 
-// template<>
-// PyObject* pyopencv_from(const int& value)
-// {
-//     return PyInt_FromLong(value);
-// }
+template<>
+PyObject* pyopencv_from(const int& value)
+{
+    return PyInt_FromLong(value);
+}
 
-// template<>
-// bool pyopencv_to(PyObject* obj, int& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     if(PyInt_Check(obj))
-//         value = (int)PyInt_AsLong(obj);
-//     else if(PyLong_Check(obj))
-//         value = (int)PyLong_AsLong(obj);
-//     else
-//         return false;
-//     return value != -1 || !PyErr_Occurred();
-// }
+template<>
+bool pyopencv_to(PyObject* obj, int& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    if(PyInt_Check(obj))
+        value = (int)PyInt_AsLong(obj);
+    else if(PyLong_Check(obj))
+        value = (int)PyLong_AsLong(obj);
+    else
+        return false;
+    return value != -1 || !PyErr_Occurred();
+}
 
-// template<>
-// PyObject* pyopencv_from(const uchar& value)
-// {
-//     return PyInt_FromLong(value);
-// }
+template<>
+PyObject* pyopencv_from(const uint8_t& value)
+{
+    return PyInt_FromLong(value);
+}
 
-// template<>
-// bool pyopencv_to(PyObject* obj, uchar& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     int ivalue = (int)PyInt_AsLong(obj);
-//     value = cv::saturate_cast<uchar>(ivalue);
-//     return ivalue != -1 || !PyErr_Occurred();
-// }
+template<>
+bool pyopencv_to(PyObject* obj, uint8_t& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    int ivalue = (int)PyInt_AsLong(obj);
+    value = static_cast<uint8_t>(ivalue);
+    return ivalue != -1 || !PyErr_Occurred();
+}
 
-// template<>
-// PyObject* pyopencv_from(const double& value)
-// {
-//     return PyFloat_FromDouble(value);
-// }
+template<>
+PyObject* pyopencv_from(const double& value)
+{
+    return PyFloat_FromDouble(value);
+}
 
-// template<>
-// bool pyopencv_to(PyObject* obj, double& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     if(!!PyInt_CheckExact(obj))
-//         value = (double)PyInt_AS_LONG(obj);
-//     else
-//         value = PyFloat_AsDouble(obj);
-//     return !PyErr_Occurred();
-// }
+template<>
+bool pyopencv_to(PyObject* obj, double& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    if(!!PyInt_CheckExact(obj))
+        value = (double)PyInt_AS_LONG(obj);
+    else
+        value = PyFloat_AsDouble(obj);
+    return !PyErr_Occurred();
+}
 
-// template<>
-// PyObject* pyopencv_from(const float& value)
-// {
-//     return PyFloat_FromDouble(value);
-// }
+template<>
+PyObject* pyopencv_from(const float& value)
+{
+    return PyFloat_FromDouble(value);
+}
 
-// template<>
-// bool pyopencv_to(PyObject* obj, float& value, const char* name)
-// {
-//     (void)name;
-//     if(!obj || obj == Py_None)
-//         return true;
-//     if(!!PyInt_CheckExact(obj))
-//         value = (float)PyInt_AS_LONG(obj);
-//     else
-//         value = (float)PyFloat_AsDouble(obj);
-//     return !PyErr_Occurred();
-// }
+template<>
+bool pyopencv_to(PyObject* obj, float& value, const char* name)
+{
+    (void)name;
+    if(!obj || obj == Py_None)
+        return true;
+    if(!!PyInt_CheckExact(obj))
+        value = (float)PyInt_AS_LONG(obj);
+    else
+        value = (float)PyFloat_AsDouble(obj);
+    return !PyErr_Occurred();
+}
 
-// template<>
-// PyObject* pyopencv_from(const int64& value)
-// {
-//     return PyLong_FromLongLong(value);
-// }
+template<>
+PyObject* pyopencv_from(const int64_t& value)
+{
+    return PyLong_FromLongLong(value);
+}
 
 // template<>
 // PyObject* pyopencv_from(const String& value)
@@ -1658,10 +1658,7 @@ static int to_ok(PyTypeObject *to)
 }
 
 
-#if PY_MAJOR_VERSION >= 3
-extern "C" CV_EXPORTS PyObject* PyInit_Extest();
-static struct PyModuleDef cv2_moduledef =
-{
+static struct PyModuleDef cv2_moduledef = {
     PyModuleDef_HEAD_INIT,
     MODULESTR,
     "Python wrapper for OpenCV.",
@@ -1670,22 +1667,12 @@ static struct PyModuleDef cv2_moduledef =
     special_methods
 };
 
-PyObject* PyInit_Extest()
-#else
-extern "C" CV_EXPORTS void initcv2();
-
-void initcv2()
-#endif
-{
+PyMODINIT_FUNC PyInit_c2py() {
 //   import_array();
 
 #include "pyopencv_generated_type_reg.h"
 
-#if PY_MAJOR_VERSION >= 3
   PyObject* m = PyModule_Create(&cv2_moduledef);
-#else
-  PyObject* m = Py_InitModule(MODULESTR, special_methods);
-#endif
   init_submodules(m); // from "pyopencv_generated_ns_reg.h"
 
   PyObject* d = PyModule_GetDict(m);
@@ -1703,16 +1690,8 @@ void initcv2()
 //     return;
 // #endif
 
-
-#if PY_MAJOR_VERSION >= 3
 #define PUBLISH_OBJECT(name, type) Py_INCREF(&type);\
   PyModule_AddObject(m, name, (PyObject *)&type);
-#else
-// Unrolled Py_INCREF(&type) without (PyObject*) cast
-// due to "warning: dereferencing type-punned pointer will break strict-aliasing rules"
-#define PUBLISH_OBJECT(name, type) _Py_INC_REFTOTAL _Py_REF_DEBUG_COMMA (&type)->ob_refcnt++;\
-  PyModule_AddObject(m, name, (PyObject *)&type);
-#endif
 
 //   PUBLISH_OBJECT("UMat", cv2_UMatWrapperType);
 
@@ -1758,7 +1737,5 @@ void initcv2()
 //   PUBLISH(CV_64FC3);
 //   PUBLISH(CV_64FC4);
 
-#if PY_MAJOR_VERSION >= 3
-    return m;
-#endif
+  return m;
 }

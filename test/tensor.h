@@ -86,7 +86,11 @@ struct CV_EXPORTS_W Tensor {
 public:
   CV_WRAP Tensor();
 
-  CV_WRAP Tensor(std::vector<size_t> shape, TensorType type);
+  Tensor(std::vector<size_t> shape, TensorType type);
+
+  CV_WRAP Tensor(const std::vector<size_t> &shape, uint8_t type) {
+    new(this) Tensor(shape, TensorType(static_cast<TensorType::Type>(type)));
+  }
 
   Tensor(std::vector<size_t> shape, std::vector<size_t> step, TensorType type);
 

@@ -26,11 +26,11 @@ include_directories(src)
 include_directories(test)
 # set(SRC src/test.cpp src/config.cpp test/model.cpp)
 set(SRC src/c2py.cpp src/config.cpp test/model.cpp)
-add_library(Extest SHARED ${SRC})
-target_link_libraries(Extest PUBLIC ${Python_LIBRARIES})
-set_target_properties(Extest PROPERTIES
+add_library(c2py SHARED ${SRC})
+target_link_libraries(c2py PUBLIC ${Python_LIBRARIES})
+set_target_properties(c2py PROPERTIES
     PREFIX ""
-    OUTPUT_NAME Extest
+    OUTPUT_NAME c2py
     SUFFIX ${CVPY_SUFFIX})
 
 add_executable(test_tensor src/test_tensor.cc src/config.cpp)
