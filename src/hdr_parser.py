@@ -203,7 +203,7 @@ class CppHeaderParser(object):
         if add_star:
             arg_type += "*"
 
-        arg_type = self.batch_replace(arg_type, [("std::", ""), ("cv::", ""), ("::", "_")])
+        arg_type = self.batch_replace(arg_type, [("std::", ""), ("c2py::", ""), ("::", "_")])
 
         return arg_type, arg_name, modlist, argno
 
@@ -298,7 +298,7 @@ class CppHeaderParser(object):
             fname += " ()"
             apos = fdecl.find("(", apos+1)
 
-        fname = "cv." + fname.replace("::", ".")
+        fname = "c2py." + fname.replace("::", ".")
         decl = [fname, rettype, [], [], None, docstring]
 
         # inline constructor implementation
@@ -601,18 +601,18 @@ class CppHeaderParser(object):
         """
         adds the dot-separated container class/namespace names to the bare function/class name, e.g. when we have
 
-        namespace cv {
+        namespace c2py {
         class A {
         public:
             f(int);
         };
         }
 
-        the function will convert "A" to "cv.A" and "f" to "cv.A.f".
+        the function will convert "A" to "c2py.A" and "f" to "c2py.A.f".
         """
         if not self.block_stack:
             return name
-        if name.startswith("cv."):
+        if name.startswith("c2py."):
             return name
         qualified_name = (("." in name) or ("::" in name))
         n = ""
@@ -627,7 +627,7 @@ class CppHeaderParser(object):
                 n += block_name + "."
         n += name.replace("::", ".")
         if n.endswith(".Algorithm"):
-            n = "cv.Algorithm"
+            n = "c2py.Algorithm"
         return n
 
     def parse_stmt(self, stmt, end_token, use_umat=False, docstring=""):

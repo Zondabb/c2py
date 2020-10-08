@@ -5,7 +5,22 @@
 #include <string>
 #include "c2py.hpp"
 
-namespace c2py { namespace dnn_inference {
+namespace c2py {
+
+// class CV_EXPORTS_W Algorithm {
+// };
+
+namespace dnn_inference {
+
+namespace sub {
+CV_WRAP int sub_add(int a, int b);
+
+class CV_EXPORTS_W SubModel {
+public:
+  CV_WRAP SubModel() {}
+  virtual ~SubModel() {}
+};
+}
 
 class CV_EXPORTS_W Model {
 public:

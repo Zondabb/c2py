@@ -269,7 +269,7 @@ class ClassProp(object):
             self.readonly = False
 
 class ClassInfo(object):
-    def __init__(self, name, decl=None):
+    def __init__(self, name, decl=None, namespace=None):
         self.cname = name.replace(".", "::")
         self.name = self.wname = normalize_class_name(name)
         self.sname = name[name.rfind('.') + 1:]
@@ -281,6 +281,7 @@ class ClassInfo(object):
         self.consts = {}
         self.base = None
         self.constructor = None
+        self.namespace = namespace
         customname = False
 
         if decl:
@@ -293,7 +294,7 @@ class ClassInfo(object):
             elif len(bases) == 1:
                 self.base = bases[0].strip(",")
                 if self.base.startswith("c2py::"):
-                    self.base = self.base[4:]
+                    self.base = self.base[6:]
                 if self.base == "Algorithm":
                     self.isalgorithm = True
                 self.base = self.base.replace("::", "_")
@@ -859,8 +860,18 @@ class PythonWrapperGenerator(object):
         self.py_signatures = dict()
         self.class_idx = 0
 
+    def split_decl_name(self, name):
+        chunks = name.split('.')
+        namespace = chunks[:-1]
+        classes = []
+        while namespace and '.'.join(namespace) not in self.parser.namespaces:
+            classes.insert(0, namespace.pop())
+        return namespace, classes, chunks[-1]
+
     def add_class(self, stype, name, decl):
-        classinfo = ClassInfo(name, decl)
+        namespace, classes, _ = self.split_decl_name(name)
+        namespace = '.'.join(namespace)
+        classinfo = ClassInfo(name, decl, namespace)
         classinfo.decl_idx = self.class_idx
         self.class_idx += 1
 
@@ -878,16 +889,7 @@ class PythonWrapperGenerator(object):
         py_name = 'c2py.' + classinfo.wname  # use wrapper name
         py_signatures = self.py_signatures.setdefault(classinfo.cname, [])
         py_signatures.append(dict(name=py_name))
-        #print('class: ' + classinfo.cname + " => " + py_name)
-
-    def split_decl_name(self, name):
-        chunks = name.split('.')
-        namespace = chunks[:-1]
-        classes = []
-        while namespace and '.'.join(namespace) not in self.parser.namespaces:
-            classes.insert(0, namespace.pop())
-        return namespace, classes, chunks[-1]
-
+        print('class: ' + classinfo.cname + " => " + py_name)
 
     def add_const(self, name, decl):
         cname = name.replace('.','::')
@@ -977,7 +979,7 @@ class PythonWrapperGenerator(object):
         for ns_name in sorted(self.namespaces):
             if ns_name.split('.')[0] == 'c2py':
                 wname = normalize_class_name(ns_name)
-                self.code_ns_reg.write('  init_submodule(root, MODULESTR"%s", methods_%s, consts_%s);\n' % (ns_name[2:], wname, wname))
+                self.code_ns_reg.write('  init_submodule(root, MODULESTR"%s", methods_%s, consts_%s);\n' % (ns_name[4:], wname, wname))
         self.code_ns_reg.write('};\n')
 
 
@@ -1073,7 +1075,8 @@ class PythonWrapperGenerator(object):
             self.code_types.write(code)
             if not classinfo.ismap:
                 self.code_type_reg.write("MKTYPE2(%s);\n" % (classinfo.name,) )
-                self.code_type_publish.write("PUBLISH_OBJECT(\"{name}\", pyopencv_{name}_Type);\n".format(name=classinfo.name))
+                self.code_type_publish.write("PUBLISH_OBJECT(\"{sname}\", \"{namespace}\", pyopencv_{name}_Type);\n".format(
+                    sname=classinfo.sname, name=classinfo.name, namespace=classinfo.namespace[5:]))
 
         # step 3: generate the code for all the global functions
         for ns_name, ns in sorted(self.namespaces.items()):

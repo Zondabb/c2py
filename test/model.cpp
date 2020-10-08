@@ -3,6 +3,10 @@
 
 namespace c2py { namespace dnn_inference {
 
+int sub::sub_add(int a, int b) {
+  return a + b;
+}
+
 bool Model::open(const std::string& model_file, const std::string& tmp_file) {
     INFO_LOG("call c function model file: %s", model_file.c_str());
     INFO_LOG("call c function tmp file: %s", tmp_file.c_str());

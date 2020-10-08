@@ -1573,11 +1573,7 @@ PyObject* pyopencv_from(const int64_t& value)
 //   }
 // }
 
-// #if PY_MAJOR_VERSION >= 3
 #define MKTYPE2(NAME) pyopencv_##NAME##_specials(); if (!to_ok(&pyopencv_##NAME##_Type)) return NULL;
-// #else
-// #define MKTYPE2(NAME) pyopencv_##NAME##_specials(); if (!to_ok(&pyopencv_##NAME##_Type)) return
-// #endif
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -1585,7 +1581,7 @@ PyObject* pyopencv_from(const int64_t& value)
 #endif
 
 #include "pyopencv_generated_types.h"
-// #include "pyopencv_generated_funcs.h"
+#include "pyopencv_generated_funcs.h"
 
 static PyMethodDef special_methods[] = {
 //   {"redirectError", (PyCFunction)pycvRedirectError, METH_VARARGS | METH_KEYWORDS, "redirectError(onError) -> None"},
@@ -1657,8 +1653,7 @@ static int to_ok(PyTypeObject *to)
   return (PyType_Ready(to) == 0);
 }
 
-
-static struct PyModuleDef cv2_moduledef = {
+static struct PyModuleDef c2py_moduledef = {
     PyModuleDef_HEAD_INIT,
     MODULESTR,
     "Python wrapper for OpenCV.",
@@ -1667,12 +1662,30 @@ static struct PyModuleDef cv2_moduledef = {
     special_methods
 };
 
+bool publish_to_module(PyObject *root, const std::string &name, std::string ns, PyObject *type) {
+  PyObject *d = PyModule_GetDict(root);
+  size_t s = ns.find(".");
+  std::string root_name = s == std::string::npos ? ns : ns.substr(0, s);
+  PyObject *sub = root_name == "" ? root : PyDict_GetItemString(d, root_name.c_str());
+
+  if (sub == NULL) {
+    return false;
+  }
+
+  if (s != std::string::npos) {
+    return publish_to_module(sub, name, ns.substr(s + 1), type);
+  }
+
+  PyModule_AddObject(sub, name.c_str(), type);
+  return true;
+}
+
 PyMODINIT_FUNC PyInit_c2py() {
 //   import_array();
 
 #include "pyopencv_generated_type_reg.h"
 
-  PyObject* m = PyModule_Create(&cv2_moduledef);
+  PyObject* m = PyModule_Create(&c2py_moduledef);
   init_submodules(m); // from "pyopencv_generated_ns_reg.h"
 
   PyObject* d = PyModule_GetDict(m);
@@ -1690,8 +1703,8 @@ PyMODINIT_FUNC PyInit_c2py() {
 //     return;
 // #endif
 
-#define PUBLISH_OBJECT(name, type) Py_INCREF(&type);\
-  PyModule_AddObject(m, name, (PyObject *)&type);
+#define PUBLISH_OBJECT(name, ns, type) Py_INCREF(&type);\
+  publish_to_module(m, name, ns, (PyObject *)&type);
 
 //   PUBLISH_OBJECT("UMat", cv2_UMatWrapperType);
 
