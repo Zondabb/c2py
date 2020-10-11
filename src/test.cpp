@@ -160,7 +160,7 @@ static struct PyModuleDef extestmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_Extest(void){
+PyInit_c2py(void){
 	import_array();
 	c2py_Model_specials(); 
 	if (!to_ok(&c2py_Model_Type)) {

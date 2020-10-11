@@ -12,7 +12,7 @@ using namespace std;
 
 #  define CV_PYTHON_TYPE_HEAD_INIT() PyVarObject_HEAD_INIT(&PyType_Type, 0)
 
-#include "pyopencv_generated_include.h"
+#include "c2py_generated_include.h"
 #include "pycompat.hpp"
 
 
@@ -41,7 +41,7 @@ struct ArgInfo
         : name(name_)
         , outputarg(outputarg_) {}
 
-    // to match with older pyopencv_to function signature
+    // to match with older c2py_to function signature
     operator const char *() const { return name; }
 };
 
@@ -95,22 +95,22 @@ static PyObject* failmsgp(const char *fmt, ...)
 }
 
 template<typename T> static
-bool pyopencv_to(PyObject* obj, T& p, const char* name = "<unknown>");
+bool c2py_to(PyObject* obj, T& p, const char* name = "<unknown>");
 
 template<typename T> static
-PyObject* pyopencv_from(const T& src);
+PyObject* c2py_from(const T& src);
 
 template <typename T>
-bool pyopencv_to(PyObject *o, Ptr<T>& p, const char *name)
+bool c2py_to(PyObject *o, Ptr<T>& p, const char *name)
 {
     if (!o || o == Py_None)
         return true;
     p = makePtr<T>();
-    return pyopencv_to(o, *p, name);
+    return c2py_to(o, *p, name);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
+bool c2py_to(PyObject* obj, std::string& value, const char* name)
 {
   (void)name;
   if(!obj || obj == Py_None)
@@ -123,7 +123,7 @@ bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
 }
 
 template<>
-bool pyopencv_to(PyObject* o, std::vector<size_t>& value, const char* name) {
+bool c2py_to(PyObject* o, std::vector<size_t>& value, const char* name) {
   if(!o || o == Py_None) {
     return true;
   }
@@ -147,13 +147,13 @@ bool pyopencv_to(PyObject* o, std::vector<size_t>& value, const char* name) {
 }
 
 template<>
-PyObject* pyopencv_from(const bool& value)
+PyObject* c2py_from(const bool& value)
 {
     return PyBool_FromLong(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, bool& value, const char* name)
+bool c2py_to(PyObject* obj, bool& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -166,13 +166,13 @@ bool pyopencv_to(PyObject* obj, bool& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const size_t& value)
+PyObject* c2py_from(const size_t& value)
 {
     return PyLong_FromSize_t(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, size_t& value, const char* name)
+bool c2py_to(PyObject* obj, size_t& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -182,13 +182,13 @@ bool pyopencv_to(PyObject* obj, size_t& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const int& value)
+PyObject* c2py_from(const int& value)
 {
     return PyInt_FromLong(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, int& value, const char* name)
+bool c2py_to(PyObject* obj, int& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -203,13 +203,13 @@ bool pyopencv_to(PyObject* obj, int& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const uint8_t& value)
+PyObject* c2py_from(const uint8_t& value)
 {
     return PyInt_FromLong(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, uint8_t& value, const char* name)
+bool c2py_to(PyObject* obj, uint8_t& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -220,13 +220,13 @@ bool pyopencv_to(PyObject* obj, uint8_t& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const double& value)
+PyObject* c2py_from(const double& value)
 {
     return PyFloat_FromDouble(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, double& value, const char* name)
+bool c2py_to(PyObject* obj, double& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -239,13 +239,13 @@ bool pyopencv_to(PyObject* obj, double& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const float& value)
+PyObject* c2py_from(const float& value)
 {
     return PyFloat_FromDouble(value);
 }
 
 template<>
-bool pyopencv_to(PyObject* obj, float& value, const char* name)
+bool c2py_to(PyObject* obj, float& value, const char* name)
 {
     (void)name;
     if(!obj || obj == Py_None)
@@ -258,20 +258,20 @@ bool pyopencv_to(PyObject* obj, float& value, const char* name)
 }
 
 template<>
-PyObject* pyopencv_from(const int64_t& value)
+PyObject* c2py_from(const int64_t& value)
 {
     return PyLong_FromLongLong(value);
 }
 
-#define MKTYPE2(NAME) pyopencv_##NAME##_specials(); if (!to_ok(&pyopencv_##NAME##_Type)) return NULL;
+#define MKTYPE2(NAME) c2py_##NAME##_specials(); if (!to_ok(&c2py_##NAME##_Type)) return NULL;
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
-#include "pyopencv_generated_types.h"
-#include "pyopencv_generated_funcs.h"
+#include "c2py_generated_types.h"
+#include "c2py_generated_funcs.h"
 
 static PyMethodDef special_methods[] = {
   {NULL, NULL},
@@ -326,7 +326,7 @@ static void init_submodule(PyObject * root, const char * name, PyMethodDef * met
 
 }
 
-#include "pyopencv_generated_ns_reg.h"
+#include "c2py_generated_ns_reg.h"
 
 static int to_ok(PyTypeObject *to)
 {
@@ -339,7 +339,7 @@ static int to_ok(PyTypeObject *to)
 static struct PyModuleDef c2py_moduledef = {
     PyModuleDef_HEAD_INIT,
     MODULESTR,
-    "Python wrapper for OpenCV.",
+    "Python wrapper for c2py.",
     -1,     /* size of per-interpreter state of the module,
                or -1 if the module keeps state in global variables. */
     special_methods
@@ -366,10 +366,10 @@ bool publish_to_module(PyObject *root, const std::string &name, std::string ns, 
 PyMODINIT_FUNC PyInit_c2py() {
 //   import_array();
 
-#include "pyopencv_generated_type_reg.h"
+#include "c2py_generated_type_reg.h"
 
   PyObject* m = PyModule_Create(&c2py_moduledef);
-  init_submodules(m); // from "pyopencv_generated_ns_reg.h"
+  init_submodules(m); // from "c2py_generated_ns_reg.h"
 
   PyObject* d = PyModule_GetDict(m);
 
@@ -381,7 +381,7 @@ PyMODINIT_FUNC PyInit_c2py() {
 #define PUBLISH_OBJECT(name, ns, type) Py_INCREF(&type);\
   publish_to_module(m, name, ns, (PyObject *)&type);
 
-#include "pyopencv_generated_type_publish.h"
+#include "c2py_generated_type_publish.h"
 
 #define PUBLISH(I) PyDict_SetItemString(d, #I, PyInt_FromLong(I))
 #define PUBLISHU(I) PyDict_SetItemString(d, #I, PyLong_FromUnsignedLong(I))

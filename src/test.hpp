@@ -11,6 +11,8 @@
 #include "tensor.h"
 #include "model.hpp"
 
+using namespace c2py;
+
 #define ERRWRAP2(expr) \
 try \
 { \
@@ -33,7 +35,7 @@ struct ArgInfo
     : name(name_)
     , outputarg(outputarg_) {}
 
-  // to match with older pyopencv_to function signature
+  // to match with older c2py_to function signature
   operator const char *() const { return name; }
 };
 
@@ -98,7 +100,7 @@ static int c2py_Model_Model(c2py_Model_t* self, PyObject* args, PyObject* kw)
   return -1;
 }
 
-bool pyopencv_to(PyObject* obj, std::string& value, const char* name)
+bool c2py_to(PyObject* obj, std::string& value, const char* name)
 {
   (void)name;
   if(!obj || obj == Py_None)
@@ -131,7 +133,7 @@ class NumpyAllocator {
   PyArrayObject *obj_;
 };
 
-bool pyopencv_to(PyObject* o, Tensor& t) {
+bool c2py_to(PyObject* o, Tensor& t) {
   if(!o || o == Py_None) {
     return true;
   }
@@ -195,11 +197,11 @@ bool pyopencv_to(PyObject* o, Tensor& t) {
   return true;
 }
 
-PyObject* pyopencv_from(const bool& value) {
+PyObject* c2py_from(const bool& value) {
   return PyBool_FromLong(value);
 }
 
-PyObject* pyopencv_from(const Tensor& t) {
+PyObject* c2py_from(const Tensor& t) {
 
 }
 
@@ -220,11 +222,11 @@ static PyObject* c2py_Model_open(PyObject* self, PyObject* args, PyObject* kw)
 
   const char* keywords[] = { "model_file", "tmp_file", NULL };
   if( PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.open", (char**)keywords, &pyobj_model_file, &pyobj_tmp_file) &&
-      pyopencv_to(pyobj_model_file, model_file, ArgInfo("model_file", 0)) &&
-      pyopencv_to(pyobj_tmp_file, tmp_file, ArgInfo("tmp_file", 0)) )
+      c2py_to(pyobj_model_file, model_file, ArgInfo("model_file", 0)) &&
+      c2py_to(pyobj_tmp_file, tmp_file, ArgInfo("tmp_file", 0)) )
   {
       ERRWRAP2(retval = _self_->open(model_file, tmp_file));
-      return pyopencv_from(retval);
+      return c2py_from(retval);
   }
 
   Py_RETURN_NONE;
@@ -245,10 +247,10 @@ static PyObject* c2py_Model_compute(PyObject* self, PyObject* args, PyObject* kw
 
   const char* keywords[] = { "mat_a", "mat_b", NULL };
   if(PyArg_ParseTupleAndKeywords(args, kw, "OO:c2py_dnn_inference_Model.compute", (char**)keywords, &pyobj_mat_a, &pyobj_mat_b) &&
-     pyopencv_to(pyobj_mat_a, ta) &&
-     pyopencv_to(pyobj_mat_b, tb) )
+     c2py_to(pyobj_mat_a, ta) &&
+     c2py_to(pyobj_mat_b, tb) )
   {
-      return pyopencv_from(retval);
+      return c2py_from(retval);
   }
 
   Py_RETURN_NONE;
