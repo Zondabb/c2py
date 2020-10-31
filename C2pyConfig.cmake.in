@@ -1,0 +1,39 @@
+# Compute paths
+get_filename_component(C2PY_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(C2PY_INCLUDE_DIR "@CONF_INCLUDE_DIRS@")
+set(C2PY_SOURCE_DIR "@PROJECT_BINARY_DIR@")
+set(C2PY_SOURCE_FILES "@C2PY_SRCS@")
+
+find_package(Python COMPONENTS Interpreter Development NumPy)
+
+function(c2py_create_library)
+  foreach(arg IN LISTS ARGN)
+    list(APPEND export_hdrs_ ${arg})
+  endforeach()
+
+  execute_process(COMMAND ${Python_EXECUTABLE} -c "import distutils.sysconfig; print(distutils.sysconfig.get_config_var('EXT_SUFFIX'))"
+                  RESULT_VARIABLE PYTHON_CVPY_PROCESS
+                  OUTPUT_VARIABLE CVPY_SUFFIX
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT PYTHON_CVPY_PROCESS EQUAL 0)
+      set(CVPY_SUFFIX ".so")
+  endif()
+
+  string(REPLACE ";" "\n" export_hdrs_ "${export_hdrs_}")
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/headers.txt" "${export_hdrs_}")
+  execute_process(
+    COMMAND ${Python_EXECUTABLE} ${C2PY_SOURCE_DIR}/src/gen.py "${CMAKE_CURRENT_BINARY_DIR}/gen" "${CMAKE_CURRENT_BINARY_DIR}/headers.txt")
+
+  include_directories(${Python_INCLUDE_DIRS})
+  include_directories(${Python_NumPy_INCLUDE_DIRS})
+  include_directories(${C2PY_INCLUDE_DIR})
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/gen)
+
+  add_library(c2py SHARED ${C2PY_SOURCE_FILES})
+  target_link_libraries(c2py PUBLIC ${Python_LIBRARIES})
+  set_target_properties(c2py PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME c2py
+    SUFFIX ${CVPY_SUFFIX})
+endfunction()

@@ -2,6 +2,7 @@
 #include <Python.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 using namespace std;
 #define Ptr std::shared_ptr
@@ -14,7 +15,7 @@ using namespace std;
 
 #include "c2py_generated_include.h"
 #include "pycompat.hpp"
-
+#include "config.hpp"
 
 static PyObject* c2py_error = 0;
 
