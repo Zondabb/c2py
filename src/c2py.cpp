@@ -14,8 +14,6 @@ using namespace std;
 #  define CV_PYTHON_TYPE_HEAD_INIT() PyVarObject_HEAD_INIT(&PyType_Type, 0)
 
 #include "c2py_generated_include.h"
-#include "pycompat.hpp"
-#include "config.hpp"
 
 static PyObject* c2py_error = 0;
 
@@ -30,6 +28,22 @@ static int failmsg(const char *fmt, ...)
 
     PyErr_SetString(PyExc_TypeError, str);
     return 0;
+}
+
+char * timeString() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    struct tm * timeinfo = localtime(&ts.tv_sec);
+    static char timeStr[40];
+    sprintf(timeStr, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d.%.3ld+08:00",
+            timeinfo->tm_year + 1900,
+            timeinfo->tm_mon + 1,
+            timeinfo->tm_mday,
+            timeinfo->tm_hour,
+            timeinfo->tm_min,
+            timeinfo->tm_sec,
+            ts.tv_nsec / 1000000);
+    return timeStr;
 }
 
 struct ArgInfo
@@ -185,7 +199,7 @@ bool c2py_to(PyObject* obj, size_t& value, const char* name)
 template<>
 PyObject* c2py_from(const int& value)
 {
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 template<>
@@ -194,9 +208,7 @@ bool c2py_to(PyObject* obj, int& value, const char* name)
     (void)name;
     if(!obj || obj == Py_None)
         return true;
-    if(PyInt_Check(obj))
-        value = (int)PyInt_AsLong(obj);
-    else if(PyLong_Check(obj))
+    if(PyLong_Check(obj))
         value = (int)PyLong_AsLong(obj);
     else
         return false;
@@ -206,7 +218,7 @@ bool c2py_to(PyObject* obj, int& value, const char* name)
 template<>
 PyObject* c2py_from(const uint8_t& value)
 {
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 template<>
@@ -215,7 +227,7 @@ bool c2py_to(PyObject* obj, uint8_t& value, const char* name)
     (void)name;
     if(!obj || obj == Py_None)
         return true;
-    int ivalue = (int)PyInt_AsLong(obj);
+    int ivalue = (int)PyLong_AsLong(obj);
     value = static_cast<uint8_t>(ivalue);
     return ivalue != -1 || !PyErr_Occurred();
 }
@@ -232,8 +244,8 @@ bool c2py_to(PyObject* obj, double& value, const char* name)
     (void)name;
     if(!obj || obj == Py_None)
         return true;
-    if(!!PyInt_CheckExact(obj))
-        value = (double)PyInt_AS_LONG(obj);
+    if(!!PyLong_CheckExact(obj))
+        value = (double)PyLong_AS_LONG(obj);
     else
         value = PyFloat_AsDouble(obj);
     return !PyErr_Occurred();
@@ -251,8 +263,8 @@ bool c2py_to(PyObject* obj, float& value, const char* name)
     (void)name;
     if(!obj || obj == Py_None)
         return true;
-    if(!!PyInt_CheckExact(obj))
-        value = (float)PyInt_AS_LONG(obj);
+    if(!!PyLong_CheckExact(obj))
+        value = (float)PyLong_AS_LONG(obj);
     else
         value = (float)PyFloat_AsDouble(obj);
     return !PyErr_Occurred();
@@ -322,7 +334,7 @@ static void init_submodule(PyObject * root, const char * name, PyMethodDef * met
   }
   for (ConstDef * c = consts; c->name != NULL; ++c)
   {
-    PyDict_SetItemString(d, c->name, PyInt_FromLong(c->val));
+    PyDict_SetItemString(d, c->name, PyLong_FromLong(c->val));
   }
 
 }
@@ -374,7 +386,7 @@ PyMODINIT_FUNC PyInit_c2py() {
 
   PyObject* d = PyModule_GetDict(m);
 
-  PyDict_SetItemString(d, "__version__", PyString_FromString(C2PY_VERSION));
+  PyDict_SetItemString(d, "__version__", PyUnicode_FromString(C2PY_VERSION));
 
   c2py_error = PyErr_NewException((char*)MODULESTR".error", NULL, NULL);
   PyDict_SetItemString(d, "error", c2py_error);

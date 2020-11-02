@@ -22,15 +22,12 @@ endforeach()
 
 set(C2PY_HDRS
   "${PROJECT_SOURCE_DIR}/src/c2py.hpp"
-  "${PROJECT_SOURCE_DIR}/src/config.hpp"
-  "${PROJECT_SOURCE_DIR}/src/pycompat.hpp"
   "${PROJECT_SOURCE_DIR}/src/gen.py"
   "${PROJECT_SOURCE_DIR}/src/hdr_parser.py"
   )
 
 set(C2PY_SRCS
   "${PROJECT_SOURCE_DIR}/src/c2py.cpp"
-  "${PROJECT_SOURCE_DIR}/src/config.cpp"
   )
 
 configure_file(
@@ -39,15 +36,6 @@ configure_file(
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/c2py.cpp"
   "${PROJECT_BINARY_DIR}/src/c2py.cpp")
-configure_file(
-  "${PROJECT_SOURCE_DIR}/src/config.hpp"
-  "${PROJECT_BINARY_DIR}/src/config.hpp")
-configure_file(
-  "${PROJECT_SOURCE_DIR}/src/pycompat.hpp"
-  "${PROJECT_BINARY_DIR}/src/pycompat.hpp")
-configure_file(
-  "${PROJECT_SOURCE_DIR}/src/config.cpp"
-  "${PROJECT_BINARY_DIR}/src/config.cpp")
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/gen.py"
   "${PROJECT_BINARY_DIR}/src/gen.py")
@@ -71,7 +59,6 @@ configure_file(C2pyConfig.cmake.in
 set(CONF_INCLUDE_DIRS "\${C2PY_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 set(C2PY_SRCS
   "${CONF_INCLUDE_DIRS}/c2py.cpp"
-  "${CONF_INCLUDE_DIRS}/config.cpp"
   )
 configure_file(C2pyConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/C2pyConfig.cmake" @ONLY)
