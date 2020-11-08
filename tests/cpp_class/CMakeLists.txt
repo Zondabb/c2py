@@ -4,9 +4,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(C2py REQUIRED)
 set(files 
-  "${PROJECT_SOURCE_DIR}/func_1.h"
-  "${PROJECT_SOURCE_DIR}/func_2.h")
+  "${PROJECT_SOURCE_DIR}/export_class.h")
 
 c2py_add_library(
   INCLUDES ${files}
+  SOURCES "${PROJECT_SOURCE_DIR}/export_class.cc"
 )

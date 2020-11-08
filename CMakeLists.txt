@@ -30,18 +30,13 @@ set(C2PY_SRCS
   "${PROJECT_SOURCE_DIR}/src/c2py.cpp"
   )
 
-configure_file(
+file(COPY
   "${PROJECT_SOURCE_DIR}/src/c2py.hpp"
-  "${PROJECT_BINARY_DIR}/src/c2py.hpp")
-configure_file(
   "${PROJECT_SOURCE_DIR}/src/c2py.cpp"
-  "${PROJECT_BINARY_DIR}/src/c2py.cpp")
-configure_file(
   "${PROJECT_SOURCE_DIR}/src/gen.py"
-  "${PROJECT_BINARY_DIR}/src/gen.py")
-configure_file(
   "${PROJECT_SOURCE_DIR}/src/hdr_parser.py"
-  "${PROJECT_BINARY_DIR}/src/hdr_parser.py")
+  DESTINATION "${PROJECT_BINARY_DIR}/src")
+
 install(FILES ${C2PY_HDRS}
   DESTINATION "${INSTALL_INCLUDE_DIR}" COMPONENT dev)
 install(FILES ${C2PY_SRCS}

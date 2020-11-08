@@ -164,7 +164,7 @@ static PyObject* c2py_${name}_repr(PyObject* self)
 {
     char str[1000];
     sprintf(str, "<$wname %p>", self);
-    return PyString_FromString(str);
+    return PyUnicode_FromString(str);
 }
 
 ${getset_code}
