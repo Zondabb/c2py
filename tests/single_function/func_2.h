@@ -1,7 +1,7 @@
 #ifndef __FUNC_2_H__
 #define __FUNC_2_H__
 
-#include "c2py.hpp"
+#include "c2py.h"
 
 namespace c2py {
 

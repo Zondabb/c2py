@@ -3,6 +3,9 @@ get_filename_component(C2PY_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 set(C2PY_INCLUDE_DIR "@CONF_INCLUDE_DIRS@")
 set(C2PY_SOURCE_FILES "@C2PY_SRCS@")
 
+include("${C2PY_CMAKE_DIR}/C2pyTensorTargets.cmake")
+get_target_property(C2PY_TENSOR_LIBRARY c2py_tensor IMPORTED_LOCATION_NOCONFIG)
+
 find_package(Python COMPONENTS Interpreter Development NumPy)
 execute_process(COMMAND ${Python_EXECUTABLE} -c "import distutils.sysconfig; print(distutils.sysconfig.get_config_var('EXT_SUFFIX'))"
                 RESULT_VARIABLE PYTHON_CVPY_PROCESS
