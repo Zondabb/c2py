@@ -258,8 +258,7 @@ PyObject* c2py_from(const float& value)
 }
 
 template<>
-bool c2py_to(PyObject* obj, float& value, const char* name)
-{
+bool c2py_to(PyObject* obj, float& value, const char* name) {
     (void)name;
     if(!obj || obj == Py_None)
         return true;
@@ -271,9 +270,13 @@ bool c2py_to(PyObject* obj, float& value, const char* name)
 }
 
 template<>
-PyObject* c2py_from(const int64_t& value)
-{
+PyObject* c2py_from(const int64_t& value) {
     return PyLong_FromLongLong(value);
+}
+
+template<>
+PyObject* c2py_from(const std::string& value) {
+    return PyUnicode_FromString(value.empty() ? "" : value.c_str());
 }
 
 #define MKTYPE2(NAME) c2py_##NAME##_specials(); if (!to_ok(&c2py_##NAME##_Type)) return NULL;

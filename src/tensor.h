@@ -108,6 +108,8 @@ public:
     return s;
   }
 
+  CV_WRAP std::string print();
+
   void Print(std::ostream &out) const;
 
   friend std::ostream &operator<<(std::ostream &out, const Tensor &so) {

@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include <sstream>
 
 namespace c2py {
 
@@ -191,6 +192,12 @@ template<typename T> T& Tensor::at(size_t idx) {
     // INFO_LOG("The index: %d is out of range.", idx);
     return ((T*)data_.get())[0];
   }
+}
+
+std::string Tensor::print() {
+  std::stringstream ss;
+  ss << *this;
+  return ss.str();
 }
 
 } // namespace c2py
