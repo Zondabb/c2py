@@ -186,7 +186,6 @@ static void c2py_${name}_specials(void)
 {
     c2py_${name}_Type.tp_base = ${baseptr};
     c2py_${name}_Type.tp_dealloc = c2py_${name}_dealloc;
-    c2py_${name}_Type.tp_repr = c2py_${name}_repr;
     c2py_${name}_Type.tp_getset = c2py_${name}_getseters;
     c2py_${name}_Type.tp_init = (initproc)${constructor};
     c2py_${name}_Type.tp_methods = c2py_${name}_methods;${extra_specials}

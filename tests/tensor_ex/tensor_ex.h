@@ -9,8 +9,6 @@ namespace c2py {
 
 CV_WRAP std::shared_ptr<Tensor> empty(int a, int b);
 
-CV_WRAP std::string __repr__();
-
 class CV_EXPORTS_W TensorEx {
 public:
   CV_WRAP TensorEx() {}
